@@ -10,4 +10,5 @@ include("time_integrators/TimeIntegrators.jl")
 
 include("data/Data.jl")
 
+include("sampling/Sampling.jl")
 end
