@@ -3,11 +3,7 @@ uuid = "18cbf0cf-7db6-4809-9308-f1337bcca29a"
 authors = ["ntm <nmucke@gmail.com> and contributors"]
 version = "1.0.0-DEV"
 
-[deps]
-JuliaFormatter = "98e50ef6-434e-11e9-1051-2b60c6c9e899"
-
 [compat]
-JuliaFormatter = "2.1.1"
 julia = "1.11.2"
 
 [extras]
