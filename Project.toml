@@ -3,15 +3,14 @@ uuid = "18cbf0cf-7db6-4809-9308-f1337bcca29a"
 authors = ["ntm <nmucke@gmail.com> and contributors"]
 version = "1.0.0-DEV"
 
-[deps]
-TestItemRunner = "f8b46487-2199-4994-9208-9a1283c18c0a"
-
 [compat]
-TestItemRunner = "1.1.0"
-julia = "1.6.7"
+julia = "1.11"
 
 [extras]
+JuliaFormatter = "98e50ef6-434e-11e9-1051-2b60c6c9e899"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+TestItemRunner = "f8b46487-2199-4994-9208-9a1283c18c0a"
 
 [targets]
-test = ["Test"]
+format = ["JuliaFormatter"]
+test = ["Test", "TestItemRunner"]

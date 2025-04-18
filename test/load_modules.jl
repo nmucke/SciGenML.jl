@@ -9,4 +9,3 @@
     @test isdefined(SciGenML, :Data)
     @test isdefined(SciGenML, :Sampling)
 end
-
