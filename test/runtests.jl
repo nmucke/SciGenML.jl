@@ -1,7 +1,5 @@
-using SciGenML
 using Test
+using TestItemRunner
 
-@testset "SciGenML.jl" begin
-    # Write your tests here.
-    @test 1 == 1
-end
+# Only run tests from this test dir, and not from other packages in monorepo
+@run_package_tests filter = t -> occursin(@__DIR__, t.filename)
