@@ -1,4 +1,3 @@
 module NeuralNetworkArchitectures
 
-
 end

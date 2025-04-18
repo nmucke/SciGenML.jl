@@ -1,5 +1,4 @@
 
-
 @testitem "Submodule Loading" begin
     using SciGenML
     @test isdefined(SciGenML, :Models)
@@ -9,4 +8,3 @@
     @test isdefined(SciGenML, :Data)
     @test isdefined(SciGenML, :Sampling)
 end
-
