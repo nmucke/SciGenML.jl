@@ -1,19 +1,3 @@
 module NeuralNetworkArchitectures
 
-
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

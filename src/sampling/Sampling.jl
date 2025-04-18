@@ -1,5 +1,3 @@
 module Sampling
 
-
-
 end
