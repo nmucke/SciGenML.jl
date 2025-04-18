@@ -1,0 +1,6 @@
+repos:
+  - repo: https://github.com/qiaojunfeng/pre-commit-julia-format
+    rev: v0.2.0                 # pick the latest tag
+    hooks:
+      - id: julia-format
+        args: ["--project=@."]  # point to your project env
