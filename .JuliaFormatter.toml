@@ -1,1 +1,4 @@
-style = "default"
+# .JuliaFormatter.toml
+indent = 4            # spaces per indent
+margin = 92           # max line length
+auto_imports = true   # group & sort imports
