@@ -14,10 +14,10 @@
     @testset "Forward pass Test 1" begin
 
         # Test basic initialization
-        model = NNArchitectures.DenseNN(;
-            in_features = IN_FEATURES,
-            out_features = OUT_FEATURES,
-            hidden_features = HIDDEN_FEATURES,
+        model = NNArchitectures.DenseNN(
+            IN_FEATURES,
+            OUT_FEATURES,
+            HIDDEN_FEATURES;
             activation_function = ACTIVATION_FUNCTION
         )
 
@@ -56,10 +56,10 @@
     ACTIVATION_FUNCTION = x -> Lux.sigmoid(x)
     BATCH_SIZE = 5
     @testset "Forward pass Test 2" begin
-        model = NNArchitectures.DenseNN(;
-            in_features = IN_FEATURES,
-            out_features = OUT_FEATURES,
-            hidden_features = HIDDEN_FEATURES,
+        model = NNArchitectures.DenseNN(
+            IN_FEATURES,
+            OUT_FEATURES,
+            HIDDEN_FEATURES;
             activation_function = ACTIVATION_FUNCTION
         )
 
@@ -96,10 +96,10 @@
     HIDDEN_FEATURES = [10, 10]
     ACTIVATION_FUNCTION = x -> Lux.relu(x)
     @testset "Training Test" begin
-        model = NNArchitectures.DenseNN(;
-            in_features = IN_FEATURES,
-            out_features = OUT_FEATURES,
-            hidden_features = HIDDEN_FEATURES,
+        model = NNArchitectures.DenseNN(
+            IN_FEATURES,
+            OUT_FEATURES,
+            HIDDEN_FEATURES;
             activation_function = ACTIVATION_FUNCTION
         )
 
@@ -126,5 +126,31 @@
         final_loss = loss_fn(y_pred, y_data)
 
         @test final_loss < init_loss
+    end
+
+    IN_FEATURES = 10
+    OUT_FEATURES = 1
+    HIDDEN_FEATURES = [10, 10]
+    ACTIVATION_FUNCTION = x -> Lux.relu(x)
+    CONDITIONING_FEATURES = 10
+    @testset "Conditional forward pass" begin
+        model = NNArchitectures.DenseNN(
+            (IN_FEATURES, CONDITIONING_FEATURES),
+            OUT_FEATURES,
+            HIDDEN_FEATURES;
+            activation_function = ACTIVATION_FUNCTION
+        )
+
+        rng = Lux.Random.default_rng()
+        ps, st = Lux.setup(rng, model)
+
+        x_data = rand(rng, DEFAULT_TYPE, IN_FEATURES, 100)
+        c_data = rand(rng, DEFAULT_TYPE, CONDITIONING_FEATURES, 100)
+        y_data = rand(rng, DEFAULT_TYPE, OUT_FEATURES, 100)
+
+        y, st = model((x_data, c_data), ps, st)
+
+        @test y isa AbstractArray
+        @test size(y) == (OUT_FEATURES, 100)
     end
 end
