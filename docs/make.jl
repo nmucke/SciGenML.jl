@@ -10,9 +10,9 @@ makedocs(;
     format = Documenter.HTML(;
         canonical = "https://nmucke.github.io/SciGenML.jl",
         edit_link = "main",
-        assets = String[],
+        assets = String[]
     ),
-    pages = ["Home" => "index.md"],
+    pages = ["Home" => "index.md"]
 )
 
 deploydocs(; repo = "github.com/nmucke/SciGenML.jl", devbranch = "main")
