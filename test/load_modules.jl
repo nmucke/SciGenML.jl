@@ -7,4 +7,5 @@
     @test isdefined(SciGenML, :TimeIntegrators)
     @test isdefined(SciGenML, :Data)
     @test isdefined(SciGenML, :Sampling)
+    @test isdefined(SciGenML, :Training)
 end
