@@ -14,7 +14,7 @@
     @testset "Forward pass Test 1" begin
 
         # Test basic initialization
-        model = NNArchitectures.DenseNN(
+        model = NNArchitectures.DenseNeuralNetwork(
             IN_FEATURES,
             OUT_FEATURES,
             HIDDEN_FEATURES;
@@ -56,7 +56,7 @@
     ACTIVATION_FUNCTION = x -> Lux.sigmoid(x)
     BATCH_SIZE = 5
     @testset "Forward pass Test 2" begin
-        model = NNArchitectures.DenseNN(
+        model = NNArchitectures.DenseNeuralNetwork(
             IN_FEATURES,
             OUT_FEATURES,
             HIDDEN_FEATURES;
@@ -96,7 +96,7 @@
     HIDDEN_FEATURES = [10, 10]
     ACTIVATION_FUNCTION = x -> Lux.relu(x)
     @testset "Training Test" begin
-        model = NNArchitectures.DenseNN(
+        model = NNArchitectures.DenseNeuralNetwork(
             IN_FEATURES,
             OUT_FEATURES,
             HIDDEN_FEATURES;
@@ -133,8 +133,9 @@
     HIDDEN_FEATURES = [10, 10]
     ACTIVATION_FUNCTION = x -> Lux.relu(x)
     CONDITIONING_FEATURES = 10
+    BATCH_SIZE = 5
     @testset "Conditional forward pass" begin
-        model = NNArchitectures.DenseNN(
+        model = NNArchitectures.DenseNeuralNetwork(
             (IN_FEATURES, CONDITIONING_FEATURES),
             OUT_FEATURES,
             HIDDEN_FEATURES;
@@ -144,13 +145,13 @@
         rng = Lux.Random.default_rng()
         ps, st = Lux.setup(rng, model)
 
-        x_data = rand(rng, DEFAULT_TYPE, IN_FEATURES, 100)
-        c_data = rand(rng, DEFAULT_TYPE, CONDITIONING_FEATURES, 100)
-        y_data = rand(rng, DEFAULT_TYPE, OUT_FEATURES, 100)
+        x_data = rand(rng, DEFAULT_TYPE, IN_FEATURES, BATCH_SIZE)
+        c_data = rand(rng, DEFAULT_TYPE, CONDITIONING_FEATURES, BATCH_SIZE)
+        y_data = rand(rng, DEFAULT_TYPE, OUT_FEATURES, BATCH_SIZE)
 
         y, st = model((x_data, c_data), ps, st)
 
         @test y isa AbstractArray
-        @test size(y) == (OUT_FEATURES, 100)
+        @test size(y) == (OUT_FEATURES, BATCH_SIZE)
     end
 end

@@ -55,7 +55,7 @@ A dense neural network with `in_features` input features,
 `out_features` output features, and `hidden_features` hidden features.
 """
 
-function DenseNN(
+function DenseNeuralNetwork(
     in_features::Int,
     out_features::Int,
     hidden_features::Vector{Int};
@@ -86,7 +86,7 @@ end
     `out_features` output features, and `hidden_features` hidden features.
     The input is a tuple that are concatenated to form a single input.
 """
-function DenseNN(
+function DenseNeuralNetwork(
     in_features::Tuple,
     out_features::Int,
     hidden_features::Vector{Int};

@@ -9,7 +9,7 @@ conditioning_features = 10
 hidden_features = [10, 10]
 activation_function = x -> Lux.relu(x)
 
-model = NNArchitectures.DenseNN(
+model = NNArchitectures.DenseNeuralNetwork(
     (in_features, conditioning_features),
     out_features,
     hidden_features;

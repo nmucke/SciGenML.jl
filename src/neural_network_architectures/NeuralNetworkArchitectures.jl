@@ -6,6 +6,6 @@ using Lux: Lux
 
 include("dense.jl")
 
-export DenseNN
+export DenseNeuralNetwork
 
 end
