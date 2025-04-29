@@ -10,7 +10,7 @@ hidden_features = [10, 10]
 activation_function = x -> Lux.relu(x)
 
 model = NNArchitectures.DenseNeuralNetwork(
-    (in_features, conditioning_features),
+    in_features,
     out_features,
     hidden_features;
     activation_function = activation_function
@@ -23,7 +23,7 @@ x_data = rand(rng, Float32, 20, 100)
 c_data = rand(rng, Float32, 10, 100)
 y_data = rand(rng, Float32, 1, 100)
 
-y, st = model((x_data, c_data), ps, st);
+y, st = model(x_data, ps, st);
 
 const loss_fun = Lux.MSELoss()
 

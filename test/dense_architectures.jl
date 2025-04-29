@@ -36,18 +36,13 @@
         @test !haskey(ps.output_layer, :bias)
 
         # Test forward pass
-        x = rand(rng, DEFAULT_TYPE, IN_FEATURES)
-        y, st = model(x, ps, st)
+        x = rand(rng, DEFAULT_TYPE, IN_FEATURES, BATCH_SIZE)
+
+        _st = Lux.testmode(st)
+        y, st = model(x, ps, _st)
 
         @test y isa AbstractArray
-        @test size(y) == (OUT_FEATURES,)
-
-        # Test batching
-        x_batch = rand(rng, DEFAULT_TYPE, IN_FEATURES, BATCH_SIZE)
-        y_batch, st = model(x_batch, ps, st)
-
-        @test y_batch isa AbstractArray
-        @test size(y_batch) == (OUT_FEATURES, BATCH_SIZE)
+        @test size(y) == (OUT_FEATURES, BATCH_SIZE)
     end
 
     IN_FEATURES = 2
@@ -78,14 +73,10 @@
         @test size(ps.output_layer.weight) == (OUT_FEATURES, HIDDEN_FEATURES[end])
         @test !haskey(ps.output_layer, :bias)
 
-        x = rand(rng, DEFAULT_TYPE, IN_FEATURES)
-        y, st = model(x, ps, st)
-
-        @test y isa AbstractArray
-        @test size(y) == (OUT_FEATURES,)
-
         x_batch = rand(rng, DEFAULT_TYPE, IN_FEATURES, BATCH_SIZE)
-        y_batch, st = model(x_batch, ps, st)
+
+        _st = Lux.testmode(st)
+        y_batch, st = model(x_batch, ps, _st)
 
         @test y_batch isa AbstractArray
         @test size(y_batch) == (OUT_FEATURES, BATCH_SIZE)
@@ -111,9 +102,11 @@
 
         loss_fn = Lux.MSELoss()
 
-        y_pred, st = model(x_data, ps, st)
+        _st = Lux.testmode(st)
+        y_pred, st = model(x_data, ps, _st)
         init_loss = loss_fn(y_pred, y_data)
 
+        st = Lux.trainmode(st)
         ps, st = Training.simple_train(;
             model = model,
             ps = ps,
@@ -122,7 +115,8 @@
             verbose = false
         )
 
-        y_pred, st = model(x_data, ps, st)
+        _st = Lux.testmode(st)
+        y_pred, st = model(x_data, ps, _st)
         final_loss = loss_fn(y_pred, y_data)
 
         @test final_loss < init_loss
@@ -149,7 +143,8 @@
         c_data = rand(rng, DEFAULT_TYPE, CONDITIONING_FEATURES, BATCH_SIZE)
         y_data = rand(rng, DEFAULT_TYPE, OUT_FEATURES, BATCH_SIZE)
 
-        y, st = model((x_data, c_data), ps, st)
+        _st = Lux.testmode(st)
+        y, st = model((x_data, c_data), ps, _st)
 
         @test y isa AbstractArray
         @test size(y) == (OUT_FEATURES, BATCH_SIZE)

@@ -88,6 +88,8 @@ function simple_train(;
         end
 
         if verbose && i % 10 == 0
+            y_pred, _ = model(data.x, ps, Lux.testmode(st))
+            loss = loss_fn(y_pred, data.y)
             println("Epoch $i: loss = $loss")
         end
     end
