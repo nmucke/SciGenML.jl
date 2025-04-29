@@ -1,10 +1,7 @@
 using SciGenML: SciGenML
 import SciGenML.NeuralNetworkArchitectures as NNArchitectures
 import SciGenML.Training as Training
-using Lux: Lux
-using Random
-using Optimisers
-using Zygote
+import Lux
 
 model = NNArchitectures.DenseNN(;
     in_features = 10,
@@ -25,8 +22,7 @@ const loss_fun = Lux.MSELoss()
 
 mse = loss_fun(y, y_data)
 
-ps,
-st = Training.simple_train(;
+(ps, st) = Training.simple_train(;
     model = model,
     ps = ps,
     st = st,
@@ -35,9 +31,3 @@ st = Training.simple_train(;
 
 y_pred, st = model(x_data, ps, st);
 mse = loss_fun(y_pred, y_data)
-
-# # Both these steps can be combined into a single call
-# gs, loss, stats, train_state = Training.single_train_step!(
-#     AutoZygote(), compute_loss,
-#     (x_data, y_data), train_state
-# )

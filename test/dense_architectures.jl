@@ -114,8 +114,7 @@
         y_pred, st = model(x_data, ps, st)
         init_loss = loss_fn(y_pred, y_data)
 
-        ps,
-        st = Training.simple_train(;
+        ps, st = Training.simple_train(;
             model = model,
             ps = ps,
             st = st,

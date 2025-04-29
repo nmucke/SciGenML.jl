@@ -28,15 +28,15 @@ Train a model for a given number of epochs using a simple training loop.
 """
 
 function simple_train(;
-        model,
-        ps,
-        st,
-        data,
-        opt = DEFAULT_OPTIMIZER,
-        loss_fn = DEFAULT_LOSS_FN,
-        num_epochs = DEFAULT_NUM_EPOCHS,
-        batch_size = DEFAULT_BATCH_SIZE,
-        verbose = true
+    model,
+    ps,
+    st,
+    data,
+    opt = DEFAULT_OPTIMIZER,
+    loss_fn = DEFAULT_LOSS_FN,
+    num_epochs = DEFAULT_NUM_EPOCHS,
+    batch_size = DEFAULT_BATCH_SIZE,
+    verbose = true
 )
 
     # Compute loss
@@ -65,19 +65,22 @@ function simple_train(;
         data = (x = data.x[:, shuffle_idx], y = data.y[:, shuffle_idx])
 
         # Create batches
-        x_batches = [data.x[:, i:(i + batch_size - 1)]
-                     for
-                     i in 1:batch_size:(n_samples - batch_size + 1)]
-        y_batches = [data.y[:, i:(i + batch_size - 1)]
-                     for
-                     i in 1:batch_size:(n_samples - batch_size + 1)]
+        x_batches = [
+            data.x[:, i:(i + batch_size - 1)] for
+            i in 1:batch_size:(n_samples - batch_size + 1)
+        ]
+        y_batches = [
+            data.y[:, i:(i + batch_size - 1)] for
+            i in 1:batch_size:(n_samples - batch_size + 1)
+        ]
 
         for (x_batch, y_batch) in zip(x_batches, y_batches)
             # Compute gradients
-            gs, loss,
-            stats,
-            train_state = Lux.Training.compute_gradients(
-                Lux.AutoZygote(), compute_loss, (x_batch, y_batch), train_state
+            gs, loss, stats, train_state = Lux.Training.compute_gradients(
+                Lux.AutoZygote(),
+                compute_loss,
+                (x_batch, y_batch),
+                train_state
             )
 
             # Optimization
