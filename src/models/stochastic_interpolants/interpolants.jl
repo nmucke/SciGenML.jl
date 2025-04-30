@@ -17,7 +17,7 @@ struct InterpolantCoefs
 end
 
 """
-    linear_interpolant
+    linear_interpolant_coefs
 
     Returns the linear interpolant.
 
@@ -40,7 +40,7 @@ function linear_interpolant_coefs()
 end
 
 """
-    quadratic_interpolant
+    quadratic_interpolant_coefs
 
     Returns the quadratic interpolant.
 
