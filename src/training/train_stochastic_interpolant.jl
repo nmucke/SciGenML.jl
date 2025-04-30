@@ -61,7 +61,17 @@ function stochastic_interpolant_train_step(
 
     return loss, train_state, stats
 end
+"""
+    train(
+        model::Models.StochasticInterpolantGenerativeModel,
+        data,
+        config,
+        rng = Random.default_rng();
+        verbose = true
+    )
 
+    Train a stochastic interpolant generative model.
+"""
 function train(
     model::Models.StochasticInterpolantGenerativeModel,
     data,
