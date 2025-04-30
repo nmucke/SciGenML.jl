@@ -2,13 +2,14 @@ using SciGenML
 import SciGenML.Architectures as Architectures
 import SciGenML.Models as Models
 import SciGenML.Training as Training
+import SciGenML.Sampling as Sampling
 import SciGenML.Config as Config
 import Lux
 import Configurations
 import Distributions
 import Plots
 
-NUM_SAMPLES = 100000
+NUM_SAMPLES = 10000
 
 # Load config
 config = Configurations.from_toml(Config.Hyperparameters, "configs/dense_SI.toml");
@@ -41,3 +42,13 @@ Plots.histogram!(y_data[1, :], bins = 100, normalize = :density, label = "y_data
 
 # Train model
 model = Training.train(model, (base = x_data, target = y_data), config; verbose = true);
+
+model.st = Lux.testmode(model.st)
+
+# Sample from model
+x_samples = Sampling.sample(model, NUM_SAMPLES, 100);
+
+Plots.histogram(x_samples[1, :], bins = 100, normalize = :density, label = "x_samples");
+Plots.histogram!(y_data[1, :], bins = 100, normalize = :density, label = "y_data");
+
+Plots.savefig("test_SI_setup.png")

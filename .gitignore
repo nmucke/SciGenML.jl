@@ -7,3 +7,11 @@
 
 .formatting/Manifest.toml
 .formatting/Project.toml
+
+*.png
+*.pdf
+*.html
+*.json
+*.yaml
+*.yml
+*.toml
