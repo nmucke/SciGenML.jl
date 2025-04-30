@@ -1,6 +1,6 @@
 
 @testitem "Dense Architecture" begin
-    import SciGenML.NeuralNetworkArchitectures as NNArchitectures
+    import SciGenML.Architectures as Architectures
     import SciGenML.Training as Training
     using Lux: Lux
     using Optimisers: Optimisers
@@ -14,7 +14,7 @@
     @testset "Forward pass Test 1" begin
 
         # Test basic initialization
-        model = NNArchitectures.DenseNeuralNetwork(
+        model = Architectures.DenseNeuralNetwork(
             IN_FEATURES,
             OUT_FEATURES,
             HIDDEN_FEATURES;
@@ -51,7 +51,7 @@
     ACTIVATION_FUNCTION = x -> Lux.sigmoid(x)
     BATCH_SIZE = 5
     @testset "Forward pass Test 2" begin
-        model = NNArchitectures.DenseNeuralNetwork(
+        model = Architectures.DenseNeuralNetwork(
             IN_FEATURES,
             OUT_FEATURES,
             HIDDEN_FEATURES;
@@ -87,7 +87,7 @@
     HIDDEN_FEATURES = [10, 10]
     ACTIVATION_FUNCTION = x -> Lux.relu(x)
     @testset "Training Test" begin
-        model = NNArchitectures.DenseNeuralNetwork(
+        model = Architectures.DenseNeuralNetwork(
             IN_FEATURES,
             OUT_FEATURES,
             HIDDEN_FEATURES;
@@ -129,7 +129,7 @@
     CONDITIONING_FEATURES = 10
     BATCH_SIZE = 5
     @testset "Conditional forward pass" begin
-        model = NNArchitectures.DenseNeuralNetwork(
+        model = Architectures.DenseNeuralNetwork(
             (IN_FEATURES, CONDITIONING_FEATURES),
             OUT_FEATURES,
             HIDDEN_FEATURES;

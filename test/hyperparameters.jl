@@ -4,7 +4,7 @@ using Test
     using SciGenML.Config
     import Configurations
 
-    @testset "architectureHyperparameters" begin
+    @testset "ArchitectureHyperparameters" begin
         # Test basic construction with scalar in_features
         hp = DenseNeuralNetworkHyperparameters(10, 2, [64, 32], 0.5)
         @test hp.in_features == 10
@@ -25,7 +25,8 @@ using Test
     end
 
     @testset "OptimizerHyperparameters" begin
-        hp = OptimizerHyperparameters(0.001f0, 0.0001f0)
+        hp = OptimizerHyperparameters("adam", 0.001f0, 0.0001f0)
+        @test hp.type == "adam"
         @test hp.learning_rate == 0.001f0
         @test hp.weight_decay == 0.0001f0
     end
@@ -33,17 +34,18 @@ using Test
     @testset "Complete Hyperparameters" begin
         architecture_hp = DenseNeuralNetworkHyperparameters(10, 2, [64, 32], 0.5)
         training_hp = TrainingHyperparameters(32, 100)
-        optimizer_hp = OptimizerHyperparameters(0.001f0, 0.0001f0)
+        optimizer_hp = OptimizerHyperparameters("adam", 0.001f0, 0.0001f0)
+        model_hp = StochasticInterpolantGenerativeModelHyperparameters("linear")
 
-        hp = Hyperparameters(architecture_hp, training_hp, optimizer_hp)
+        hp = Hyperparameters(architecture_hp, training_hp, optimizer_hp, model_hp)
 
         @test hp.architecture == architecture_hp
         @test hp.training == training_hp
         @test hp.optimizer == optimizer_hp
+        @test hp.model == model_hp
     end
 
     @testset "Load config" begin
-        using SciGenML.Config
         config = Configurations.from_toml(
             Config.Hyperparameters,
             "dense_neural_network_config.toml"
@@ -57,7 +59,10 @@ using Test
         @test config.training.batch_size == 32
         @test config.training.num_epochs == 100
 
+        @test config.optimizer.type == "adam"
         @test config.optimizer.learning_rate == 0.001f0
         @test config.optimizer.weight_decay == 0.001f0
+
+        @test config.model.interpolant_type == "linear"
     end
 end

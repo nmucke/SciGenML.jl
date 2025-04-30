@@ -67,13 +67,30 @@ end
     Hyperparameters for the optimizer.
 """
 Configurations.@option struct OptimizerHyperparameters
+    type::String
     learning_rate::DEFAULT_TYPE
     weight_decay::DEFAULT_TYPE
 
     # CONSTRUCTOR
-    function OptimizerHyperparameters(learning_rate, weight_decay)
-        return new(learning_rate |> DEFAULT_TYPE, weight_decay |> DEFAULT_TYPE)
+    function OptimizerHyperparameters(type, learning_rate, weight_decay)
+        return new(type, learning_rate |> DEFAULT_TYPE, weight_decay |> DEFAULT_TYPE)
     end
+end
+
+"""
+    PlaceholderGenerativeModel
+
+    A generative model that uses a placeholder.
+"""
+Configurations.@option "placeholder" struct PlaceholderGenerativeModel end
+
+"""
+    StochasticInterpolantGenerativeModelHyperparameters
+
+    Hyperparameters for the stochastic interpolant generative model.
+"""
+Configurations.@option "stochastic_interpolant" struct StochasticInterpolantGenerativeModelHyperparameters
+    interpolant_type::String
 end
 
 """
@@ -85,4 +102,8 @@ Configurations.@option struct Hyperparameters
     architecture::Union{DenseNeuralNetworkHyperparameters, PlaceholderHyperparameters}
     training::TrainingHyperparameters
     optimizer::OptimizerHyperparameters
+    model::Union{
+        StochasticInterpolantGenerativeModelHyperparameters,
+        PlaceholderGenerativeModel
+    }
 end

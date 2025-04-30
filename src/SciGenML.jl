@@ -10,7 +10,7 @@ export DEFAULT_TYPE
 
 include("models/Models.jl")
 
-include("neural_network_architectures/NeuralNetworkArchitectures.jl")
+include("architectures/Architectures.jl")
 
 include("neural_network_layers/NeuralNetworkLayers.jl")
 
