@@ -5,7 +5,7 @@ import SciGenML.Models as Models
 
 import Random
 import Distributions
-
+import ProgressBars
 ##### Stochastic Interpolant Sampling #####
 
 include("sample_stochastic_interpolant.jl")

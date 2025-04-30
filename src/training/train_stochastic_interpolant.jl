@@ -69,6 +69,8 @@ function train(
     rng = Random.default_rng();
     verbose = true
 )
+    model.st = Lux.trainmode(model.st)
+
     opt = get_optimizer(
         config.optimizer.type,
         config.optimizer.learning_rate,

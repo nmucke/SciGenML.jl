@@ -6,7 +6,7 @@ dropout = 0.001
 
 [training]
 batch_size = 256
-num_epochs = 1000
+num_epochs = 50
 
 [optimizer]
 type = "adamw"

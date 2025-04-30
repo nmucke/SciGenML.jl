@@ -37,8 +37,8 @@ y_data_dist = Distributions.MixtureModel(Distributions.Normal[
 
 y_data = rand(rng, y_data_dist, (1, NUM_SAMPLES)) .|> DEFAULT_TYPE;
 
-Plots.histogram(x_data[1, :], bins = 50, normalize = :density, label = "x_data");
-Plots.histogram!(y_data[1, :], bins = 100, normalize = :density, label = "y_data");
+# Plots.histogram(x_data[1, :], bins = 50, normalize = :density, label = "x_data");
+# Plots.histogram!(y_data[1, :], bins = 100, normalize = :density, label = "y_data");
 
 # Train model
 model = Training.train(model, (base = x_data, target = y_data), config; verbose = true);
@@ -46,9 +46,8 @@ model = Training.train(model, (base = x_data, target = y_data), config; verbose 
 model.st = Lux.testmode(model.st)
 
 # Sample from model
-x_samples = Sampling.sample(model, NUM_SAMPLES, 100);
+x_samples = Sampling.sample(model, NUM_SAMPLES, 1000; verbose = true);
 
 Plots.histogram(x_samples[1, :], bins = 100, normalize = :density, label = "x_samples");
 Plots.histogram!(y_data[1, :], bins = 100, normalize = :density, label = "y_data");
-
 Plots.savefig("test_SI_setup.png")
