@@ -4,7 +4,7 @@ using Test
     using SciGenML.Config
     import Configurations
 
-    @testset "ModelHyperparameters" begin
+    @testset "architectureHyperparameters" begin
         # Test basic construction with scalar in_features
         hp = DenseNeuralNetworkHyperparameters(10, 2, [64, 32], 0.5)
         @test hp.in_features == 10
@@ -31,13 +31,13 @@ using Test
     end
 
     @testset "Complete Hyperparameters" begin
-        model_hp = DenseNeuralNetworkHyperparameters(10, 2, [64, 32], 0.5)
+        architecture_hp = DenseNeuralNetworkHyperparameters(10, 2, [64, 32], 0.5)
         training_hp = TrainingHyperparameters(32, 100)
         optimizer_hp = OptimizerHyperparameters(0.001f0, 0.0001f0)
 
-        hp = Hyperparameters(model_hp, training_hp, optimizer_hp)
+        hp = Hyperparameters(architecture_hp, training_hp, optimizer_hp)
 
-        @test hp.model == model_hp
+        @test hp.architecture == architecture_hp
         @test hp.training == training_hp
         @test hp.optimizer == optimizer_hp
     end
@@ -49,10 +49,10 @@ using Test
             "dense_neural_network_config.toml"
         )
 
-        @test config.model.in_features == (20, 10)
-        @test config.model.out_features == 1
-        @test config.model.hidden_features == [10, 10]
-        @test config.model.dropout == 0.1
+        @test config.architecture.in_features == (20, 10)
+        @test config.architecture.out_features == 1
+        @test config.architecture.hidden_features == [10, 10]
+        @test config.architecture.dropout == 0.1
 
         @test config.training.batch_size == 32
         @test config.training.num_epochs == 100

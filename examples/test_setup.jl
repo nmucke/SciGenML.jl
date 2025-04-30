@@ -9,9 +9,9 @@ config =
     Configurations.from_toml(Config.Hyperparameters, "configs/dense_neural_network.toml")
 
 model = NNArchitectures.DenseNeuralNetwork(
-    config.model.in_features,
-    config.model.out_features,
-    config.model.hidden_features;
+    config.architecture.in_features,
+    config.architecture.out_features,
+    config.architecture.hidden_features;
 );
 
 ps, st = Lux.setup(Lux.Random.default_rng(), model);

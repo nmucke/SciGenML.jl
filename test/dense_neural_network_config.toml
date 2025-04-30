@@ -1,4 +1,4 @@
-[model.dense_neural_network]
+[architecture.dense_neural_network]
 in_features = [20, 10]
 out_features = 1
 hidden_features = [10, 10]

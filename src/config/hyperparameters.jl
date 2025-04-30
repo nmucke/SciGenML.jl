@@ -79,10 +79,10 @@ end
 """
     Hyperparameters
 
-    Hyperparameters for the model, training, and optimizer.
+    Hyperparameters for the architecture, training, and optimizer.
 """
 Configurations.@option struct Hyperparameters
-    model::Union{DenseNeuralNetworkHyperparameters, PlaceholderHyperparameters}
+    architecture::Union{DenseNeuralNetworkHyperparameters, PlaceholderHyperparameters}
     training::TrainingHyperparameters
     optimizer::OptimizerHyperparameters
 end
