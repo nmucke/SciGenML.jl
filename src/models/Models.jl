@@ -21,7 +21,7 @@ include("stochastic_interpolants/interpolants.jl")
 export InterpolantCoefs
 
 # Specific interpolants
-export linear_interpolant, quadratic_interpolant
+export linear_interpolant_coefs, quadratic_interpolant_coefs
 
 # Interpolant functions
 export compute_interpolant, compute_interpolant_diff

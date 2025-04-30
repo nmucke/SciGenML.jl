@@ -29,7 +29,7 @@ end
     α'(t) = -1
     β'(t) = 1
 """
-function linear_interpolant()
+function linear_interpolant_coefs()
     alpha = t -> 1.0f0 .- t
     beta = t -> t
 
@@ -52,7 +52,7 @@ end
     α'(t) = -1
     β'(t) = 2t
 """
-function quadratic_interpolant()
+function quadratic_interpolant_coefs()
     alpha = t -> 1.0f0 .- t
     beta = t -> t .^ 2
 
