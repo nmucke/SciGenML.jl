@@ -77,6 +77,22 @@ Configurations.@option struct OptimizerHyperparameters
 end
 
 """
+    PlaceholderGenerativeModel
+
+    A generative model that uses a placeholder.
+"""
+Configurations.@option "placeholder" struct PlaceholderGenerativeModel end
+
+"""
+    StochasticInterpolantGenerativeModelHyperparameters
+
+    Hyperparameters for the stochastic interpolant generative model.
+"""
+Configurations.@option "stochastic_interpolant" struct StochasticInterpolantGenerativeModelHyperparameters
+    interpolant_type::String
+end
+
+"""
     Hyperparameters
 
     Hyperparameters for the architecture, training, and optimizer.
@@ -85,4 +101,8 @@ Configurations.@option struct Hyperparameters
     architecture::Union{DenseNeuralNetworkHyperparameters, PlaceholderHyperparameters}
     training::TrainingHyperparameters
     optimizer::OptimizerHyperparameters
+    model::Union{
+        StochasticInterpolantGenerativeModelHyperparameters,
+        PlaceholderGenerativeModel
+    }
 end
