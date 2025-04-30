@@ -67,12 +67,13 @@ end
     Hyperparameters for the optimizer.
 """
 Configurations.@option struct OptimizerHyperparameters
+    type::String
     learning_rate::DEFAULT_TYPE
     weight_decay::DEFAULT_TYPE
 
     # CONSTRUCTOR
-    function OptimizerHyperparameters(learning_rate, weight_decay)
-        return new(learning_rate |> DEFAULT_TYPE, weight_decay |> DEFAULT_TYPE)
+    function OptimizerHyperparameters(type, learning_rate, weight_decay)
+        return new(type, learning_rate |> DEFAULT_TYPE, weight_decay |> DEFAULT_TYPE)
     end
 end
 

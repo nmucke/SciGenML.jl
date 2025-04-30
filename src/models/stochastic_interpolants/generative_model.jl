@@ -3,7 +3,7 @@
 
     A generative model that uses a stochastic interpolant to generate data.
 """
-struct StochasticInterpolantGenerativeModel <: GenerativeModel
+mutable struct StochasticInterpolantGenerativeModel <: GenerativeModel
     interpolant_coefs::InterpolantCoefs
     drift_model::Any
     ps::NamedTuple

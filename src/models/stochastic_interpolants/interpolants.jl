@@ -89,5 +89,5 @@ end
         t: The time.
 """
 function compute_interpolant_diff(x0, x1, interpolant_coefs::InterpolantCoefs, t)
-    return interpolant_coefs.alpha_diff(t) * x0 + interpolant_coefs.beta_diff(t) * x1
+    return interpolant_coefs.alpha_diff(t) .* x0 .+ interpolant_coefs.beta_diff(t) .* x1
 end

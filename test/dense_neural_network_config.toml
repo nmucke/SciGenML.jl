@@ -10,5 +10,9 @@ batch_size = 32
 num_epochs = 100
 
 [optimizer]
+type = "adam"
 learning_rate = 0.001
 weight_decay = 0.001
+
+[model.stochastic_interpolant]
+interpolant_type = "linear"

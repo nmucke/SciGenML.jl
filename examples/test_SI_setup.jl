@@ -1,5 +1,5 @@
-import SciGenML
-import SciGenML.NeuralNetworkArchitectures as NNArchitectures
+using SciGenML
+import SciGenML.Architectures as Architectures
 import SciGenML.Models as Models
 import SciGenML.Training as Training
 import SciGenML.Config as Config
@@ -8,45 +8,36 @@ import Configurations
 import Distributions
 import Plots
 
-NUM_SAMPLES = 1000
+NUM_SAMPLES = 100000
 
-config = Configurations.from_toml(Config.Hyperparameters, "configs/dense_SI.toml")
+# Load config
+config = Configurations.from_toml(Config.Hyperparameters, "configs/dense_SI.toml");
 
-drift_model = NNArchitectures.DenseNeuralNetwork(
+# Define drift model
+drift_model = Architectures.DenseNeuralNetwork(
     config.architecture.in_features,
     config.architecture.out_features,
     config.architecture.hidden_features;
 );
 
+# Define generative model
 model =
     Models.StochasticInterpolantGenerativeModel(config.model.interpolant_type, drift_model);
 
-rng = Lux.Random.default_rng()
-x_data_dist = Distributions.Normal(0.0, 1.0)
-x_data = rand(rng, x_data_dist, NUM_SAMPLES)
+# Define data distributions
+rng = Lux.Random.default_rng();
+x_data_dist = Distributions.Normal(0.0, 1.0);
+x_data = rand(rng, x_data_dist, (1, NUM_SAMPLES)) .|> DEFAULT_TYPE;
 
 y_data_dist = Distributions.MixtureModel(Distributions.Normal[
     Distributions.Normal(-3.0, 1.0),
     Distributions.Normal(3.0, 1.0)
-])
+]);
 
-y_data = rand(rng, y_data_dist, NUM_SAMPLES)
+y_data = rand(rng, y_data_dist, (1, NUM_SAMPLES)) .|> DEFAULT_TYPE;
 
-Plots.histogram(x_data, bins = 50, normalize = :density, label = "x_data")
-Plots.histogram!(y_data, bins = 100, normalize = :density, label = "y_data")
+Plots.histogram(x_data[1, :], bins = 50, normalize = :density, label = "x_data");
+Plots.histogram!(y_data[1, :], bins = 100, normalize = :density, label = "y_data");
 
-y, st = model((x_data, y_data), ps, st);
-
-const loss_fun = Lux.MSELoss()
-
-mse = loss_fun(y, y_data)
-
-(ps, st) = Training.simple_train(;
-    model = model,
-    ps = ps,
-    st = st,
-    data = (x = x_data, y = y_data)
-)
-
-y_pred, st = model(x_data, ps, st);
-mse = loss_fun(y_pred, y_data)
+# Train model
+model = Training.train(model, (base = x_data, target = y_data), config; verbose = true);
