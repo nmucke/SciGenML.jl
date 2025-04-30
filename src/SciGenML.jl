@@ -21,4 +21,7 @@ include("data/Data.jl")
 include("sampling/Sampling.jl")
 
 include("training/Training.jl")
+
+include("config/Config.jl")
+
 end

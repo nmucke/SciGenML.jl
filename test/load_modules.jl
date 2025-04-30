@@ -8,4 +8,5 @@
     @test isdefined(SciGenML, :Data)
     @test isdefined(SciGenML, :Sampling)
     @test isdefined(SciGenML, :Training)
+    @test isdefined(SciGenML, :Config)
 end

@@ -17,6 +17,8 @@ Modules = [
     SciGenML.NeuralNetworkLayers, 
     SciGenML.TimeIntegrators, 
     SciGenML.Data, 
-    SciGenML.Sampling
+    SciGenML.Sampling,
+    SciGenML.Training,
+    SciGenML.Config
 ]
 ```
