@@ -1,19 +1,17 @@
-using SciGenML: SciGenML
+import SciGenML
 import SciGenML.NeuralNetworkArchitectures as NNArchitectures
 import SciGenML.Training as Training
+import SciGenML.Config as Config
 import Lux
+import Configurations
 
-in_features = 20
-out_features = 1
-conditioning_features = 10
-hidden_features = [10, 10]
-activation_function = x -> Lux.relu(x)
+config =
+    Configurations.from_toml(Config.Hyperparameters, "configs/dense_neural_network.toml")
 
 model = NNArchitectures.DenseNeuralNetwork(
-    in_features,
-    out_features,
-    hidden_features;
-    activation_function = activation_function
+    config.model.in_features,
+    config.model.out_features,
+    config.model.hidden_features;
 );
 
 ps, st = Lux.setup(Lux.Random.default_rng(), model);
@@ -23,7 +21,7 @@ x_data = rand(rng, Float32, 20, 100)
 c_data = rand(rng, Float32, 10, 100)
 y_data = rand(rng, Float32, 1, 100)
 
-y, st = model(x_data, ps, st);
+y, st = model((x_data, c_data), ps, st);
 
 const loss_fun = Lux.MSELoss()
 
@@ -38,20 +36,3 @@ mse = loss_fun(y, y_data)
 
 y_pred, st = model(x_data, ps, st);
 mse = loss_fun(y_pred, y_data)
-
-x = rand(rng, Float32, 20, 100)
-c = rand(rng, Float32, 10, 100)
-
-lol = vcat((x, c)...)
-
-y, st = model(lol, ps, st)
-
-mse = loss_fun(y, y_data)
-
-function f(x::Int, y::Int)
-    return x + y
-end
-
-function f(x::Int, y::Int, z::Int)
-    return x + y + z
-end
