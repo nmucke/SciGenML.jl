@@ -1,9 +1,16 @@
+"""
+    Models
+
+Module for defining models.
+
+This module contains generative models.
+"""
+
 module Models
 
 import Lux
 
 import SciGenML.DEFAULT_TYPE as DEFAULT_TYPE
-
 export GenerativeModel, ConditionalGenerativeModel
 
 """

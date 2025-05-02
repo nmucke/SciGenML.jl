@@ -1,9 +1,16 @@
+"""
+    Training
+
+Module for training models.
+
+This module contains functions for training generative models.
+"""
+
 module Training
 
 import SciGenML
 import SciGenML.DEFAULT_TYPE as DEFAULT_TYPE
 import SciGenML.Models as Models
-
 import Lux
 import Random
 import Optimisers

@@ -26,7 +26,7 @@ drift_model = Architectures.DenseNeuralNetwork(
 model =
     Models.StochasticInterpolantGenerativeModel(config.model.interpolant_type, drift_model);
 
-# Define training data
+##### Define training data #####
 x_data_dist = Distributions.Normal(0.0, 1.0);
 x_data = rand(rng, x_data_dist, (1, NUM_SAMPLES)) .|> DEFAULT_TYPE;
 

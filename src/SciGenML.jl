@@ -1,3 +1,12 @@
+"""
+    SciGenML
+
+Module for the SciGenML package.
+
+This module is the main module for the SciGenML package. It imports all the
+other modules in the package and makes them available to the user.
+"""
+
 module SciGenML
 
 import Lux

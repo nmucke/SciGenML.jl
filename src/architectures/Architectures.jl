@@ -1,3 +1,13 @@
+"""
+    Architectures
+
+Module for defining neural network architectures.
+
+This module contains full neural network architectures/models. In contrast
+to the `Layers` module, which contains individual layers, this module contains
+complete models.
+"""
+
 module Architectures
 
 import SciGenML.DEFAULT_TYPE as DEFAULT_TYPE
