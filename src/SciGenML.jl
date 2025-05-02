@@ -12,7 +12,7 @@ include("models/Models.jl")
 
 include("architectures/Architectures.jl")
 
-include("neural_network_layers/NeuralNetworkLayers.jl")
+include("layers/Layers.jl")
 
 include("time_integrators/TimeIntegrators.jl")
 

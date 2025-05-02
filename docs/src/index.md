@@ -13,8 +13,8 @@ Documentation for [SciGenML](https://github.com/nmucke/SciGenML.jl).
 Modules = [
     SciGenML, 
     SciGenML.Models, 
-    SciGenML.NeuralNetworkArchitectures, 
-    SciGenML.NeuralNetworkLayers, 
+    SciGenML.Architectures, 
+    SciGenML.Layers, 
     SciGenML.TimeIntegrators, 
     SciGenML.Data, 
     SciGenML.Sampling,
