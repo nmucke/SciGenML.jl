@@ -19,23 +19,6 @@ rng = Lux.Random.default_rng();
 config = Configurations.from_toml(Config.Hyperparameters, "configs/dense_SI.toml");
 
 ##### Define generative model #####
-# Define velocity model
-# velocity_model = Architectures.DenseNeuralNetwork(
-#     config.architecture.in_features,
-#     config.architecture.out_features,
-#     config.architecture.hidden_features;
-# );
-
-# # Define score model
-# score_model = Architectures.DenseNeuralNetwork(
-#     config.architecture.in_features,
-#     config.architecture.out_features,
-#     config.architecture.hidden_features;
-# );
-
-# Define generative model
-# SI_model = Models.StochasticInterpolant(velocity_model, score_model);
-# SI_model = Models.StochasticInterpolant(velocity_model, );
 SI_model = Models.StochasticInterpolant(config,);
 
 ##### Define training data #####
@@ -56,13 +39,13 @@ data = (base = x_data, target = y_data);
 model = Training.train(SI_model, data, config; verbose = true);
 
 ##### Sample using model #####
-si_samples = Sampling.sample(
-    Models.Deterministic(),
+si_samples, st = Sampling.sample(
+    Models.Stochastic(),
     model,
-    20;
+    200;
+    prior_samples = rand(rng, x_data_dist, (1, NUM_SAMPLES)),
     num_samples = NUM_SAMPLES,
-    verbose = true,
-    stepper = TimeIntegrators.RK4_step
+    verbose = true
 );
 
 Plots.histogram(si_samples[1, :], bins = 100, normalize = :density, label = "SI samples")

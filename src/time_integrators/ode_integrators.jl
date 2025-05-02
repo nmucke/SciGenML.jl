@@ -27,8 +27,7 @@ function ode_integrator(
 
     iter = Utils.get_iter(num_steps, verbose)
     for i in iter
-        x, st = stepper(rhs, x, t, dt, ps, st)
-        t = t .+ dt
+        x, t, st = stepper(rhs, x, t, dt, ps, st)
     end
     return x, st
 end
@@ -46,7 +45,10 @@ function forward_euler_step(rhs, x, t, dt, ps, st)
     # Compute next state
     x_next = x .+ dt .* rhs_output
 
-    return x_next, st
+    # Update time
+    t = t .+ dt
+
+    return x_next, t, st
 end
 
 """
@@ -65,5 +67,8 @@ function RK4_step(rhs, x, t, dt, ps, st)
     # Compute next state
     x_next = x .+ dt .* (stage_1 .+ 2 * stage_2 .+ 2 * stage_3 .+ stage_4) ./ 6
 
-    return x_next, st
+    # Update time
+    t = t .+ dt
+
+    return x_next, t, st
 end

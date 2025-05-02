@@ -50,5 +50,6 @@ export compute_interpolant, compute_interpolant_diff
 
 # Stochastic interpolant generative model
 export StochasticInterpolant
+export drift_term
 
 end

@@ -13,6 +13,8 @@ import SciGenML.DEFAULT_TYPE as DEFAULT_TYPE
 
 import SciGenML.Utils as Utils
 
+import Random
+
 ##### ODE Integrators #####
 include("ode_integrators.jl")
 
@@ -21,5 +23,8 @@ export ode_integrator
 
 ##### SDE Integrators #####
 include("sde_integrators.jl")
+
+export euler_maruyama_step
+export sde_integrator
 
 end

@@ -18,7 +18,8 @@ function sample(
     prior_samples = nothing,
     diffusion_fn = nothing,
     rng::Random.AbstractRNG = Random.default_rng(),
-    verbose::Bool = true
+    verbose::Bool = true,
+    stepper = TimeIntegrators.euler_maruyama_step
 )
     model.st =
         (; velocity = Lux.testmode(model.st.velocity), score = Lux.testmode(model.st.score))
@@ -36,33 +37,37 @@ function sample(
     end
 
     dt = 1.0 / num_steps |> DEFAULT_TYPE
-    t_i = zeros(DEFAULT_TYPE, (1, num_samples))
 
-    iter = Utils.get_iter(num_steps, verbose)
+    # Get drift term
+    drift_term_fn = Models.drift_term(model, diffusion_fn)
 
-    for i in iter
-        velocity, _velocity_st =
-            model.velocity((x_samples, t_i), model.ps.velocity, model.st.velocity)
-        score, _score_st = model.score((x_samples, t_i), model.ps.score, model.st.score)
-        model.st = (; velocity = _velocity_st, score = _score_st)
+    # Solve SDE
+    x_samples, st = TimeIntegrators.sde_integrator(
+        stepper,
+        drift_term_fn,
+        diffusion_fn,
+        x_samples,
+        num_steps,
+        model.ps,
+        model.st;
+        t_interval = [0.0f0, 1.0f0 - dt],
+        verbose = verbose,
+        rng = rng
+    )
 
-        z_samples = Random.randn!(rng, similar(x_samples, (1, num_samples)))
-        diffusion = diffusion_fn(t_i)
+    # Compute last step using forward Euler
+    t_end = (1.0f0 - dt) .* ones(DEFAULT_TYPE, (1, num_samples))
+    x_samples, _, velocity_st = TimeIntegrators.RK4_step(
+        model.velocity,
+        x_samples,
+        t_end,
+        dt,
+        model.ps.velocity,
+        model.st.velocity
+    )
+    st = (; velocity = velocity_st, score = model.st.score)
 
-        diffusion_term = diffusion .* z_samples
-        drift_term = velocity .+ 0.5f0 .* diffusion .^ 2 .* score
-
-        x_samples = x_samples .+ dt .* drift_term + sqrt.(dt) .* diffusion_term
-        t_i = t_i .+ dt
-    end
-
-    velocity, _velocity_st =
-        model.velocity((x_samples, t_i), model.ps.velocity, model.st.velocity)
-    model.st = (; velocity = _velocity_st, score = model.st.score)
-
-    x_samples = x_samples .+ dt .* velocity
-
-    return x_samples
+    return x_samples, st
 end
 
 """
@@ -99,13 +104,7 @@ function sample(
         num_samples = size(x_samples)[end]
     end
 
-    dt = 1.0 / num_steps |> DEFAULT_TYPE
-
-    t_i = zeros(DEFAULT_TYPE, (1, num_samples))
-
-    iter = Utils.get_iter(num_steps, verbose)
-
-    x_samples, st = TimeIntegrators.ode_integrator(
+    x_samples, velocity_st = TimeIntegrators.ode_integrator(
         stepper,
         model.velocity,
         x_samples,
@@ -115,25 +114,7 @@ function sample(
         t_interval = [0.0, 1.0],
         verbose = verbose
     )
+    st = (; velocity = velocity_st, score = model.st.score)
 
-    # for i in iter
-
-    #     x_samples, velocity_st = integrator(
-    #         model.velocity,
-    #         x_samples,
-    #         t_i,
-    #         dt,
-    #         model.ps.velocity,
-    #         model.st.velocity
-    #     )
-
-    #     model.st =(; 
-    #         velocity = velocity_st, 
-    #         score = model.trait == Models.Stochastic() ? model.st.score : nothing
-    #     )
-
-    #     t_i = t_i .+ dt
-    # end
-
-    return x_samples
+    return x_samples, st
 end
