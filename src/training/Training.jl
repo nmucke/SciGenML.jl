@@ -66,8 +66,10 @@ include("simple_train.jl")
 export simple_train
 
 ##### Stochastic Interpolant Training #####
-
 include("train_stochastic_interpolant.jl")
+
+##### Flow Matching Training #####
+include("train_flow_matching.jl")
 
 export train
 

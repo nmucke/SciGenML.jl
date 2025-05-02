@@ -107,6 +107,17 @@ mutable struct StochasticInterpolant <: GenerativeModel
             score_model
         )
     end
+
+    function StochasticInterpolant(
+        interpolant_coefs::Any,
+        velocity::Any,
+        score::Any,
+        ps::Any,
+        st::Any,
+        trait::Any
+    )
+        return new(interpolant_coefs, velocity, score, ps, st, trait)
+    end
 end
 
 """

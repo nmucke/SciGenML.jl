@@ -39,6 +39,9 @@ include("stochastic_interpolants/interpolants.jl")
 include("stochastic_interpolants/generative_model.jl")
 include("stochastic_interpolants/stochastic_interpolant_utils.jl")
 
+##### Flow Matching #####
+include("flow_matching/generative_model.jl")
+
 ### Interpolants
 export DeterministicInterpolantCoefs, StochasticInterpolantCoefs
 

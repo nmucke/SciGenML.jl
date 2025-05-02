@@ -16,10 +16,11 @@ NUM_SAMPLES = 25000
 rng = Lux.Random.default_rng();
 
 ##### Load config #####
-config = Configurations.from_toml(Config.Hyperparameters, "configs/2d_dense_SI.toml");
+config =
+    Configurations.from_toml(Config.Hyperparameters, "configs/2d_dense_flow_matching.toml");
 
 ##### Define generative model #####
-SI_model = Models.StochasticInterpolant(config, Models.Stochastic());
+flow_matching_model = Models.FlowMatching(config,);
 
 ##### Define training data #####
 x_data_dist = Distributions.Normal(0.0, 1.0);
@@ -50,12 +51,12 @@ p = Plots.plot(
 
 ##### Train model #####
 data = (base = x_data, target = y_data);
-SI_model = Training.train(SI_model, data, config; verbose = true);
+flow_matching_model = Training.train(flow_matching_model, data, config; verbose = true);
 
 ##### Sample using model #####
-si_samples, st = Sampling.sample(
-    SI_model,
-    100;
+flow_matching_samples, st = Sampling.sample(
+    flow_matching_model,
+    1000;
     prior_samples = rand(rng, x_data_dist, (2, NUM_SAMPLES)) .|> DEFAULT_TYPE,
     num_samples = NUM_SAMPLES,
     verbose = true
@@ -63,11 +64,11 @@ si_samples, st = Sampling.sample(
 
 p = Plots.plot(
     Plots.histogram2d(
-        si_samples[1, :],
-        si_samples[2, :],
+        flow_matching_samples[1, :],
+        flow_matching_samples[2, :],
         bins = 100,
         normalize = :density,
-        label = "SI samples"
+        label = "Flow matching samples"
     ),
     Plots.histogram2d(
         y_data[1, :],

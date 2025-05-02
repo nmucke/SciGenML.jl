@@ -78,11 +78,13 @@ Configurations.@option struct OptimizerHyperparameters
 end
 
 """
-    PlaceholderGenerativeModel
+    FlowMatchingHyperparameters
 
-    A generative model that uses a placeholder.
+    Hyperparameters for the flow matching generative model.
 """
-Configurations.@option "placeholder" struct PlaceholderGenerativeModel end
+Configurations.@option "flow_matching" struct FlowMatchingHyperparameters
+    interpolant_type::String
+end
 
 """
     StochasticInterpolantHyperparameters
@@ -102,5 +104,5 @@ Configurations.@option struct Hyperparameters
     architecture::Union{DenseNeuralNetworkHyperparameters, PlaceholderHyperparameters}
     training::TrainingHyperparameters
     optimizer::OptimizerHyperparameters
-    model::Union{StochasticInterpolantHyperparameters, PlaceholderGenerativeModel}
+    model::Union{StochasticInterpolantHyperparameters, FlowMatchingHyperparameters}
 end
