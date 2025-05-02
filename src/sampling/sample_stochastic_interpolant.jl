@@ -19,7 +19,7 @@ function sample(
     diffusion_fn = nothing,
     rng::Random.AbstractRNG = Random.default_rng(),
     verbose::Bool = true,
-    stepper = TimeIntegrators.euler_maruyama_step
+    stepper = TimeIntegrators.heun_step
 )
     model.st =
         (; velocity = Lux.testmode(model.st.velocity), score = Lux.testmode(model.st.score))

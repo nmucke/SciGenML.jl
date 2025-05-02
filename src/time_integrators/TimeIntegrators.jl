@@ -24,7 +24,7 @@ export ode_integrator
 ##### SDE Integrators #####
 include("sde_integrators.jl")
 
-export euler_maruyama_step
+export euler_maruyama_step, heun_step
 export sde_integrator
 
 end

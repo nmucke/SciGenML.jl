@@ -42,10 +42,11 @@ model = Training.train(SI_model, data, config; verbose = true);
 si_samples, st = Sampling.sample(
     Models.Stochastic(),
     model,
-    200;
+    10;
     prior_samples = rand(rng, x_data_dist, (1, NUM_SAMPLES)),
     num_samples = NUM_SAMPLES,
-    verbose = true
+    verbose = true,
+    stepper = TimeIntegrators.heun_step
 );
 
 Plots.histogram(si_samples[1, :], bins = 100, normalize = :density, label = "SI samples")
