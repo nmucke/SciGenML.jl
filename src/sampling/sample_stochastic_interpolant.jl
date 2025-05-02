@@ -83,7 +83,8 @@ function sample(
     num_samples::Int = 1000,
     prior_samples = nothing,
     rng::Random.AbstractRNG = Random.default_rng(),
-    verbose::Bool = true
+    verbose::Bool = true,
+    stepper = TimeIntegrators.RK4_step
 )
     model.st = (;
         velocity = Lux.testmode(model.st.velocity),
@@ -104,14 +105,35 @@ function sample(
 
     iter = Utils.get_iter(num_steps, verbose)
 
-    for i in iter
-        drift, st_ = model.velocity((x_samples, t_i), model.ps.velocity, model.st.velocity)
-        model.st =
-            (; velocity = st_, score = model.trait == Models.Stochastic() ? st_ : nothing)
+    x_samples, st = TimeIntegrators.ode_integrator(
+        stepper,
+        model.velocity,
+        x_samples,
+        num_steps,
+        model.ps.velocity,
+        model.st.velocity;
+        t_interval = [0.0, 1.0],
+        verbose = verbose
+    )
 
-        x_samples = x_samples .+ drift .* dt
-        t_i = t_i .+ dt
-    end
+    # for i in iter
+
+    #     x_samples, velocity_st = integrator(
+    #         model.velocity,
+    #         x_samples,
+    #         t_i,
+    #         dt,
+    #         model.ps.velocity,
+    #         model.st.velocity
+    #     )
+
+    #     model.st =(; 
+    #         velocity = velocity_st, 
+    #         score = model.trait == Models.Stochastic() ? model.st.score : nothing
+    #     )
+
+    #     t_i = t_i .+ dt
+    # end
 
     return x_samples
 end
