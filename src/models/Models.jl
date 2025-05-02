@@ -11,6 +11,11 @@ module Models
 import Lux
 
 import SciGenML.DEFAULT_TYPE as DEFAULT_TYPE
+import SciGenML.ZERO_TOL as ZERO_TOL
+
+import SciGenML.Config as Config
+import SciGenML.Architectures as Architectures
+
 export GenerativeModel, ConditionalGenerativeModel
 
 """
@@ -32,7 +37,7 @@ export Deterministic, Stochastic
 ##### Stochastic Interpolants #####
 include("stochastic_interpolants/interpolants.jl")
 include("stochastic_interpolants/generative_model.jl")
-include("stochastic_interpolants/utils.jl")
+include("stochastic_interpolants/stochastic_interpolant_utils.jl")
 
 ### Interpolants
 export DeterministicInterpolantCoefs, StochasticInterpolantCoefs

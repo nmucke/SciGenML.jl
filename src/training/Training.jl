@@ -10,7 +10,11 @@ module Training
 
 import SciGenML
 import SciGenML.DEFAULT_TYPE as DEFAULT_TYPE
+import SciGenML.ZERO_TOL as ZERO_TOL
 import SciGenML.Models as Models
+import SciGenML.Utils as Utils
+import SciGenML.Sampling as Sampling
+
 import Lux
 import Random
 import Optimisers
@@ -19,14 +23,22 @@ import Zygote
 import Distributions
 import Statistics
 
-DEFAULT_LR = DEFAULT_TYPE(1.0f-3)
-DEFAULT_LAMBDA = DEFAULT_TYPE(1.0f-3)
-DEFAULT_OPTIMIZER = Optimisers.AdamW(; eta = DEFAULT_LR, lambda = DEFAULT_LAMBDA)
-DEFAULT_LOSS_FN = Lux.MSELoss()
-DEFAULT_NUM_EPOCHS = 100
-DEFAULT_BATCH_SIZE = 16
+const DEFAULT_LR = DEFAULT_TYPE(1.0f-3)
+const DEFAULT_LAMBDA = DEFAULT_TYPE(1.0f-3)
+const DEFAULT_OPTIMIZER = Optimisers.AdamW(; eta = DEFAULT_LR, lambda = DEFAULT_LAMBDA)
+const DEFAULT_LOSS_FN = Lux.MSELoss()
+const DEFAULT_NUM_EPOCHS = 100
+const DEFAULT_BATCH_SIZE = 16
 
-export DEFAULT_LR, DEFAULT_LAMBDA, DEFAULT_OPTIMIZER, DEFAULT_LOSS_FN, DEFAULT_NUM_EPOCHS
+const MSE_LOSS_FN = Lux.MSELoss()
+
+export DEFAULT_LR,
+    DEFAULT_LAMBDA,
+    DEFAULT_OPTIMIZER,
+    DEFAULT_LOSS_FN,
+    DEFAULT_NUM_EPOCHS,
+    DEFAULT_BATCH_SIZE,
+    MSE_LOSS_FN
 
 """
     train(
@@ -43,7 +55,7 @@ end
 
 ##### Training Utils #####
 
-include("utils.jl")
+include("training_utils.jl")
 
 export get_optimizer, prepare_batches
 

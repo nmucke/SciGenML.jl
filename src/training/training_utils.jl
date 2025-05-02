@@ -38,27 +38,3 @@ function prepare_batches(data, batch_size::Int, rng::Random.AbstractRNG)
 
     return x_batches, y_batches
 end
-
-# """
-#     prepare_batches(data::Dict{String, Distributions.Distribution}, batch_size::Int)
-
-#     Prepare batches for training.
-# """
-# function prepare_batches(
-#     data::Dict{String, Distributions.Distribution},
-#     batch_size::Int,
-#     rng::Random.AbstractRNG
-# )
-#     n_samples = size(data["base"], 2)
-
-#     x_batches = [
-#         rand(rng, data["base"], batch_size) for
-#         i in 1:batch_size:(n_samples - batch_size + 1)
-#     ]
-#     y_batches = [
-#         rand(rng, data["target"], batch_size) for
-#         i in 1:batch_size:(n_samples - batch_size + 1)
-#     ]
-
-#     return x_batches, y_batches
-# end

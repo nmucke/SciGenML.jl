@@ -14,12 +14,17 @@ import Optimisers
 using Zygote
 
 DEFAULT_TYPE = Float32
+ZERO_TOL = 1.0f-12
 
-export DEFAULT_TYPE
+export DEFAULT_TYPE, ZERO_TOL
 
-include("models/Models.jl")
+include("utils/Utils.jl")
+
+include("config/Config.jl")
 
 include("architectures/Architectures.jl")
+
+include("models/Models.jl")
 
 include("layers/Layers.jl")
 
@@ -30,7 +35,5 @@ include("data/Data.jl")
 include("sampling/Sampling.jl")
 
 include("training/Training.jl")
-
-include("config/Config.jl")
 
 end

@@ -76,4 +76,35 @@ mutable struct StochasticInterpolant <: GenerativeModel
             Models.Deterministic()
         )
     end
+
+    ### Constructor from config
+    function StochasticInterpolant(
+        config::Config.Hyperparameters,
+        trait = Models.Stochastic()
+    )
+
+        # Define velocity model
+        velocity_model = Architectures.DenseNeuralNetwork(
+            config.architecture.in_features,
+            config.architecture.out_features,
+            config.architecture.hidden_features;
+        );
+        if trait == Models.Deterministic()
+            return StochasticInterpolant(config.model.interpolant_type, velocity_model)
+
+        elseif trait == Models.Stochastic()
+            # Define score model
+            score_model = Architectures.DenseNeuralNetwork(
+                config.architecture.in_features,
+                config.architecture.out_features,
+                config.architecture.hidden_features;
+            );
+        end
+
+        return StochasticInterpolant(
+            config.model.interpolant_type,
+            velocity_model,
+            score_model
+        )
+    end
 end

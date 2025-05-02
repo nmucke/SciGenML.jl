@@ -64,8 +64,12 @@ function linear_interpolant_coefs(trait::Union{Models.Deterministic, Models.Stoc
     if trait == Models.Deterministic()
         return DeterministicInterpolantCoefs(alpha, beta, alpha_diff, beta_diff)
     elseif trait == Models.Stochastic()
-        gamma = t -> 1.0f0 .- t
-        gamma_diff = t -> -1.0f0
+        gamma = t -> sqrt.(2.0f0 .* t .* (1.0f0 .- t))
+        gamma_diff =
+            t ->
+                (1.0f0 .- 2.0f0 .* t) ./
+                (sqrt(2.0f0) .* sqrt.(- (t .- 1.0f0) .* t) .+ ZERO_TOL)
+
         return StochasticInterpolantCoefs(
             alpha,
             beta,
@@ -111,11 +115,14 @@ function quadratic_interpolant_coefs(trait::Union{Models.Deterministic, Models.S
     alpha_diff = t -> -1.0f0
     beta_diff = t -> 2.0f0 * t
 
-    if trait == Models.Deterministic
+    if trait == Models.Deterministic()
         return DeterministicInterpolantCoefs(alpha, beta, alpha_diff, beta_diff)
-    elseif trait == Models.Stochastic
-        gamma = t -> 1.0f0 .- t
-        gamma_diff = t -> -1.0f0
+    elseif trait == Models.Stochastic()
+        gamma = t -> sqrt.(2.0f0 .* t .* (1.0f0 .- t))
+        gamma_diff =
+            t ->
+                (1.0f0 .- 2.0f0 .* t) ./
+                (sqrt(2.0f0) .* sqrt.(- (t .- 1.0f0) .* t) .+ ZERO_TOL)
         return StochasticInterpolantCoefs(
             alpha,
             beta,
