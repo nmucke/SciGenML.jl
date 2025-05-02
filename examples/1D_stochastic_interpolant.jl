@@ -16,7 +16,7 @@ NUM_SAMPLES = 10000
 rng = Lux.Random.default_rng();
 
 ##### Load config #####
-config = Configurations.from_toml(Config.Hyperparameters, "configs/dense_SI.toml");
+config = Configurations.from_toml(Config.Hyperparameters, "configs/1d_dense_SI.toml");
 
 ##### Define generative model #####
 SI_model = Models.StochasticInterpolant(config,);

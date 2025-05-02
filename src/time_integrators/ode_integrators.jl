@@ -22,7 +22,7 @@ function ode_integrator(
     t_interval = [0.0, 1.0],
     verbose::Bool = true
 )
-    dt = (t_interval[2] - t_interval[1]) / num_steps
+    dt = (t_interval[2] - t_interval[1]) / num_steps |> DEFAULT_TYPE
     t = t_interval[1] .* ones(DEFAULT_TYPE, (1, size(x)[end]))
 
     iter = Utils.get_iter(num_steps, verbose)

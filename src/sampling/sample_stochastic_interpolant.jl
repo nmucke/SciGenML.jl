@@ -111,7 +111,7 @@ function sample(
         num_steps,
         model.ps.velocity,
         model.st.velocity;
-        t_interval = [0.0, 1.0],
+        t_interval = [0.0f0, 1.0f0],
         verbose = verbose
     )
     st = (; velocity = velocity_st, score = model.st.score)
