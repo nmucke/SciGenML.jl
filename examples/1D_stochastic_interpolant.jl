@@ -12,7 +12,7 @@ import Plots
 NUM_SAMPLES = 10000
 rng = Lux.Random.default_rng();
 
-# Load config
+##### Load config #####
 config = Configurations.from_toml(Config.Hyperparameters, "configs/dense_SI.toml");
 
 # Define drift model
@@ -22,7 +22,7 @@ drift_model = Architectures.DenseNeuralNetwork(
     config.architecture.hidden_features;
 );
 
-# Define generative model
+##### Define generative model #####
 model =
     Models.StochasticInterpolantGenerativeModel(config.model.interpolant_type, drift_model);
 
@@ -36,13 +36,15 @@ y_data_dist = Distributions.MixtureModel(Distributions.Normal[
 ]);
 y_data = rand(rng, y_data_dist, (1, NUM_SAMPLES)) .|> DEFAULT_TYPE;
 
-# Train model
+Plots.histogram(x_data[1, :], bins = 100, normalize = :density, label = "x_data")
+Plots.histogram!(y_data[1, :], bins = 100, normalize = :density, label = "y_data")
+
+##### Train model #####
 model = Training.train(model, (base = x_data, target = y_data), config; verbose = true);
 
-# Sample from model
+##### Sample from model #####
 model.st = Lux.testmode(model.st)
-x_samples = Sampling.sample(model, NUM_SAMPLES, 50; verbose = true);
+si_samples = Sampling.sample(model, NUM_SAMPLES, 50; verbose = true);
 
-Plots.histogram(x_samples[1, :], bins = 100, normalize = :density, label = "x_samples");
-Plots.histogram!(y_data[1, :], bins = 100, normalize = :density, label = "y_data");
-Plots.savefig("test_SI_setup.png")
+Plots.histogram(si_samples[1, :], bins = 100, normalize = :density, label = "SI samples")
+Plots.histogram!(y_data[1, :], bins = 100, normalize = :density, label = "Target samples")
