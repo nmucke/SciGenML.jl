@@ -108,3 +108,42 @@ mutable struct StochasticInterpolant <: GenerativeModel
         )
     end
 end
+
+"""
+    drift_term(
+        ::Models.Stochastic,
+        model::StochasticInterpolant, 
+        diffusion_fn, 
+        x, 
+        ps, 
+        st
+    )
+
+    Compute the drift term for a stochastic interpolant.
+"""
+function drift_term(model::StochasticInterpolant, diffusion_fn)
+    return drift_term(model.trait, model, diffusion_fn)
+end
+
+"""
+    drift_term(
+        ::Models.Stochastic,
+        model::StochasticInterpolant, 
+        diffusion_fn, 
+    )
+
+    Compute the drift term for a stochsatic interpolant.
+"""
+function drift_term(::Models.Stochastic, model::StochasticInterpolant, diffusion_fn)
+    function drift_wrapper(x, ps, st; model = model)
+        velocity, _velocity_st = model.velocity(x, ps.velocity, st.velocity)
+        score, _score_st = model.score(x, ps.score, st.score)
+        st = (; velocity = _velocity_st, score = _score_st)
+
+        _, t = x
+        diffusion = diffusion_fn(t)
+        return velocity .+ 0.5f0 .* diffusion .^ 2 .* score, st
+    end
+
+    return drift_wrapper
+end
