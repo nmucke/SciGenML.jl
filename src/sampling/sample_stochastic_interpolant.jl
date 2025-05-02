@@ -10,7 +10,7 @@
     Sample from a stochastic interpolant generative model using the forward Euler method.
 """
 function sample(
-    model::Models.StochasticInterpolantGenerativeModel,
+    model::Models.StochasticInterpolant,
     num_samples::Int,
     num_steps::Int;
     rng::Random.AbstractRNG = Random.default_rng(),

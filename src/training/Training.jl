@@ -17,6 +17,7 @@ import Optimisers
 import ProgressBars
 import Zygote
 import Distributions
+import Statistics
 
 DEFAULT_LR = DEFAULT_TYPE(1.0f-3)
 DEFAULT_LAMBDA = DEFAULT_TYPE(1.0f-3)
@@ -26,6 +27,19 @@ DEFAULT_NUM_EPOCHS = 100
 DEFAULT_BATCH_SIZE = 16
 
 export DEFAULT_LR, DEFAULT_LAMBDA, DEFAULT_OPTIMIZER, DEFAULT_LOSS_FN, DEFAULT_NUM_EPOCHS
+
+"""
+    train(
+        model,
+        args...; 
+        kwargs...
+    )
+
+    Generic training function for all models.
+"""
+function train(model, args...; kwargs...)
+    return train(model.trait, model, args...; kwargs...)
+end
 
 ##### Training Utils #####
 

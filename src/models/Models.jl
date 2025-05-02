@@ -23,13 +23,19 @@ Abstract type for all conditional generative models.
 """
 abstract type ConditionalGenerativeModel <: GenerativeModel end
 
+##### GenerativeTraits #####
+struct Deterministic end
+struct Stochastic end
+
+export Deterministic, Stochastic
+
 ##### Stochastic Interpolants #####
 include("stochastic_interpolants/interpolants.jl")
 include("stochastic_interpolants/generative_model.jl")
 include("stochastic_interpolants/utils.jl")
 
 ### Interpolants
-export InterpolantCoefs
+export DeterministicInterpolantCoefs, StochasticInterpolantCoefs
 
 # Specific interpolants
 export linear_interpolant_coefs, quadratic_interpolant_coefs
@@ -38,8 +44,6 @@ export linear_interpolant_coefs, quadratic_interpolant_coefs
 export compute_interpolant, compute_interpolant_diff
 
 # Stochastic interpolant generative model
-export StochasticInterpolantGenerativeModel
-
-##### Models #####
+export StochasticInterpolant
 
 end
