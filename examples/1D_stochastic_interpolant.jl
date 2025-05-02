@@ -4,10 +4,12 @@ import SciGenML.Models as Models
 import SciGenML.Training as Training
 import SciGenML.Sampling as Sampling
 import SciGenML.Config as Config
+import SciGenML.Utils as Utils
 import Lux
 import Configurations
 import Distributions
 import Plots
+import Random
 
 NUM_SAMPLES = 10000
 rng = Lux.Random.default_rng();
@@ -15,16 +17,25 @@ rng = Lux.Random.default_rng();
 ##### Load config #####
 config = Configurations.from_toml(Config.Hyperparameters, "configs/dense_SI.toml");
 
-# Define drift model
-drift_model = Architectures.DenseNeuralNetwork(
+##### Define generative model #####
+# Define velocity model
+velocity_model = Architectures.DenseNeuralNetwork(
     config.architecture.in_features,
     config.architecture.out_features,
     config.architecture.hidden_features;
 );
 
-##### Define generative model #####
-model =
-    Models.StochasticInterpolantGenerativeModel(config.model.interpolant_type, drift_model);
+# Define score model
+score_model = Architectures.DenseNeuralNetwork(
+    config.architecture.in_features,
+    config.architecture.out_features,
+    config.architecture.hidden_features;
+);
+
+# Define generative model
+# SI_model = Models.StochasticInterpolant(velocity_model, score_model);
+# SI_model = Models.StochasticInterpolant(velocity_model, );
+SI_model = Models.StochasticInterpolant(config,);
 
 ##### Define training data #####
 x_data_dist = Distributions.Normal(0.0, 1.0);
@@ -40,11 +51,10 @@ Plots.histogram(x_data[1, :], bins = 100, normalize = :density, label = "x_data"
 Plots.histogram!(y_data[1, :], bins = 100, normalize = :density, label = "y_data")
 
 ##### Train model #####
-model = Training.train(model, (base = x_data, target = y_data), config; verbose = true);
+model = Training.train(SI_model, (base = x_data, target = y_data), config; verbose = true);
 
-##### Sample from model #####
-model.st = Lux.testmode(model.st)
-si_samples = Sampling.sample(model, NUM_SAMPLES, 50; verbose = true);
+##### Sample using model #####
+si_samples = Sampling.sample(model, 1000; num_samples = NUM_SAMPLES, verbose = true);
 
 Plots.histogram(si_samples[1, :], bins = 100, normalize = :density, label = "SI samples")
 Plots.histogram!(y_data[1, :], bins = 100, normalize = :density, label = "Target samples")

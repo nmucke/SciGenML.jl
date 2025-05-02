@@ -21,6 +21,6 @@ export Hyperparameters
 export DenseNeuralNetworkHyperparameters
 export TrainingHyperparameters
 export OptimizerHyperparameters
-export StochasticInterpolantGenerativeModelHyperparameters
+export StochasticInterpolantHyperparameters
 
 end
