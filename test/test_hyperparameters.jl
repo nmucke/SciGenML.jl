@@ -31,11 +31,11 @@ using Test
         @test hp.weight_decay == 0.0001f0
     end
 
-    @testset "Complete Hyperparameters" begin
+    @testset "Complete Hyperparameters with StochasticInterpolant" begin
         architecture_hp = DenseNeuralNetworkHyperparameters(10, 2, [64, 32], 0.5)
         training_hp = TrainingHyperparameters(32, 100)
         optimizer_hp = OptimizerHyperparameters("adam", 0.001f0, 0.0001f0)
-        model_hp = StochasticInterpolantGenerativeModelHyperparameters("linear")
+        model_hp = StochasticInterpolantHyperparameters("linear")
 
         hp = Hyperparameters(architecture_hp, training_hp, optimizer_hp, model_hp)
 
