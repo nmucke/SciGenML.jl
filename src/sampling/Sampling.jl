@@ -1,3 +1,11 @@
+"""
+    Sampling
+
+Module for sampling from models.
+
+This module contains functions for sampling using generative models.
+"""
+
 module Sampling
 
 import SciGenML.DEFAULT_TYPE as DEFAULT_TYPE
