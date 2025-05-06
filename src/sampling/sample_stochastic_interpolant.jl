@@ -63,7 +63,7 @@ function sample(
     x_samples, _, velocity_st = TimeIntegrators.RK4_step(
         model.velocity,
         x_samples,
-        t_end,
+        t_end |> model.device,
         dt,
         model.ps.velocity,
         model.st.velocity

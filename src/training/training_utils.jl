@@ -23,17 +23,34 @@ end
     Prepare batches for training.
 """
 function prepare_batches(data, batch_size::Int, rng::Random.AbstractRNG)
-    n_samples = size(data.base, 2)
-    shuffle_idx = Random.randperm(rng, n_samples)
-    data = (base = data.base[:, shuffle_idx], target = data.target[:, shuffle_idx])
+    n_samples = size(data.target, ndims(data.target))
+
+    if data.base isa AbstractArray{<:Number}
+        data = (
+            base = selectdim(data.base, ndims(data.base), Random.randperm(rng, n_samples)),
+            target = selectdim(
+                data.target,
+                ndims(data.target),
+                Random.randperm(rng, n_samples)
+            )
+        )
+    else
+        data = (
+            base = Random.rand!(rng, data.base, similar(data.target, size(data.target))),
+            target = selectdim(
+                data.target,
+                ndims(data.target),
+                Random.randperm(rng, n_samples)
+            )
+        )
+    end
 
     x_batches = [
-        data.base[:, i:(i + batch_size - 1)] for
-        i in 1:batch_size:(n_samples - batch_size + 1)
+        selectdim(data.base, ndims(data.base), i:min(i + batch_size - 1, n_samples)) for
+        i in 1:batch_size:n_samples
     ]
     y_batches = [
-        data.target[:, i:(i + batch_size - 1)] for
-        i in 1:batch_size:(n_samples - batch_size + 1)
+        selectdim(data.target, ndims(data.target), i:min(i + batch_size - 1, n_samples)) for i in 1:batch_size:n_samples
     ]
 
     return x_batches, y_batches
