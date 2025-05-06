@@ -146,6 +146,9 @@ end
         interpolant_coefs: The interpolant coefficients.
 """
 function compute_interpolant(x0, x1, t, interpolant_coefs::DeterministicInterpolantCoefs)
+    # Expand t to match dimensions of x0 except for the last dimension
+    t = reshape(t, ntuple(i -> i == ndims(x0) ? size(t)[end] : 1, ndims(x0)))
+
     return interpolant_coefs.alpha(t) .* x0 .+ interpolant_coefs.beta(t) .* x1
 end
 
@@ -162,6 +165,10 @@ end
         interpolant_coefs: The interpolant coefficients.
 """
 function compute_interpolant(x0, x1, z, t, interpolant_coefs::StochasticInterpolantCoefs)
+
+    # Expand t to match dimensions of x0 except for the last dimension
+    t = reshape(t, ntuple(i -> i == ndims(x0) ? size(t)[end] : 1, ndims(x0)))
+
     return interpolant_coefs.alpha(t) .* x0 .+ interpolant_coefs.beta(t) .* x1 .+
            interpolant_coefs.gamma(t) .* z
 end
@@ -183,6 +190,10 @@ function compute_interpolant_diff(
     t,
     interpolant_coefs::DeterministicInterpolantCoefs
 )
+
+    # Expand t to match dimensions of x0 except for the last dimension
+    t = reshape(t, ntuple(i -> i == ndims(x0) ? size(t)[end] : 1, ndims(x0)))
+
     return interpolant_coefs.alpha_diff(t) .* x0 .+ interpolant_coefs.beta_diff(t) .* x1
 end
 
@@ -193,6 +204,10 @@ function compute_interpolant_diff(
     t,
     interpolant_coefs::StochasticInterpolantCoefs
 )
+
+    # Expand t to match dimensions of x0 except for the last dimension
+    t = reshape(t, ntuple(i -> i == ndims(x0) ? size(t)[end] : 1, ndims(x0)))
+
     return interpolant_coefs.alpha_diff(t) .* x0 .+ interpolant_coefs.beta_diff(t) .* x1 .+
            interpolant_coefs.gamma_diff(t) .* z
 end

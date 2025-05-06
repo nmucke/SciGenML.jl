@@ -1,0 +1,45 @@
+"""
+    sinusoidal_embedding(
+        x::AbstractArray{AbstractFloat, 4},
+        min_freq::AbstractFloat,
+        max_freq::AbstractFloat,
+        embedding_dims::Int
+    )
+
+Embed the noise variances to a sinusoidal embedding with the given frequency
+range and embedding dimensions.
+
+Based on https://yng87.page/en/blog/2022/lux-ddim/.
+"""
+function sinusoidal_embedding(
+    x,
+    embedding_dims::Int,
+    min_freq::AbstractFloat = 1.0f0,
+    max_freq::AbstractFloat = 1000.0f0,
+    dev = DEFAULT_DEVICE
+)
+
+    # if length(size(x)) != 4
+    #     x = reshape(x, (1, 1, 1, size(x)[end]))
+    #     # throw(DimensionMismatch("Input shape must be (1, 1, 1, batch)"))
+    # end
+
+    # define frequencies
+    # LinRange requires @adjoint when used with Zygote
+    # Instead we manually implement range.
+    lower = log(min_freq)
+    upper = log(max_freq)
+    n = div(embedding_dims, 2)
+    d = (upper - lower) / (n - 1)
+    freqs = exp.(lower:d:upper) |> dev
+    # @assert length(freqs) == div(embedding_dims, 2)
+    # @assert size(freqs) == (div(embedding_dims, 2),)
+
+    angular_speeds = reshape(2.0f0 * Float32(pi) .* freqs, (length(freqs), 1))
+    # @assert size(angular_speeds) == (1, 1, div(embedding_dims, 2), 1)
+
+    embeddings = cat(sin.(angular_speeds .* x), cos.(angular_speeds .* x); dims = 1)
+    # @assert size(embeddings) == (1, 1, embedding_dims, size(x, 4))
+
+    return embeddings
+end

@@ -12,13 +12,21 @@ module Architectures
 
 import SciGenML.DEFAULT_TYPE as DEFAULT_TYPE
 
+import SciGenML.Layers as Layers
 import Lux
+import NNlib
 
-const DEFAULT_ACTIVATION_FUNCTION = x -> Lux.leakyrelu(x, 0.1)
+const DEFAULT_ACTIVATION_FUNCTION = NNlib.gelu
 const DEFAULT_DROPOUT = 0.1 |> DEFAULT_TYPE
 
+### Dense ###
 include("dense.jl")
 
 export DenseNeuralNetwork
+
+### UNet ###
+include("unet.jl")
+
+export UNet
 
 end

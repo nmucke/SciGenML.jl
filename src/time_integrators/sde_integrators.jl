@@ -59,10 +59,14 @@ function euler_maruyama_step(
     x = x .+ dt .* drift
 
     # Get gaussian noise
-    z = Random.randn!(rng, similar(x, (1, size(x)[end])))
+    z = Random.randn!(rng, similar(x, size(x)))
 
     # Get diffusion
     diffusion = diffusion_term_fn(t)
+    diffusion = reshape(
+        diffusion,
+        ntuple(i -> i == ndims(x[1]) ? size(diffusion)[end] : 1, ndims(x[1]))
+    )
     x = x .+ sqrt(dt) .* diffusion .* z
 
     # Update time
@@ -89,10 +93,14 @@ function heun_step(
     em_x = x .+ dt .* em_drift
 
     # Get gaussian noise
-    z = Random.randn!(rng, similar(x, (1, size(x)[end])))
+    z = Random.randn!(rng, similar(x, size(x)))
 
     # Get diffusion
     em_diffusion = diffusion_term_fn(t)
+    em_diffusion = reshape(
+        em_diffusion,
+        ntuple(i -> i == ndims(x) ? size(em_diffusion)[end] : 1, ndims(x))
+    )
     em_x = em_x .+ sqrt(dt) .* em_diffusion .* z
 
     ### Corrector step ###
@@ -101,6 +109,10 @@ function heun_step(
 
     # Get diffusion
     corrected_diffusion = diffusion_term_fn(t .+ dt)
+    corrected_diffusion = reshape(
+        corrected_diffusion,
+        ntuple(i -> i == ndims(x) ? size(corrected_diffusion)[end] : 1, ndims(x))
+    )
 
     # Get final drift and diffusion
     final_drift = (em_drift .+ corrected_drift) / 2

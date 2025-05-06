@@ -18,6 +18,9 @@ end
 function compute_score_loss(model, ps, st, (x, z, gamma))
     y_pred, st_ = model(x, ps, st)
 
+    gamma =
+        reshape(gamma, ntuple(i -> i == ndims(x[1]) ? size(gamma)[end] : 1, ndims(x[1])))
+
     loss = 0.5f0 .* (y_pred .^ 2)
     loss = loss .+ 1.0f0 ./ (gamma .+ ZERO_TOL) .* z
     loss = Statistics.mean(loss)
@@ -53,7 +56,7 @@ function _train_step(
     t_samples = Random.rand!(rng, similar(base_samples, (1, num_samples)))
 
     # Sample noise
-    z_samples = Random.randn!(rng, similar(base_samples, (1, num_samples)))
+    z_samples = Random.randn!(rng, similar(base_samples, size(base_samples)))
 
     # Compute interpolated samples
     interpolated_samples = Models.compute_interpolant(
@@ -129,7 +132,7 @@ function _train_step(
     t_samples = Random.rand!(rng, similar(base_samples, (1, num_samples)))
 
     # Sample noise
-    z_samples = Random.randn!(rng, similar(base_samples, (1, num_samples)))
+    z_samples = Random.randn!(rng, similar(base_samples, size(base_samples)))
 
     # Compute interpolated samples
     interpolated_samples = Models.compute_interpolant(

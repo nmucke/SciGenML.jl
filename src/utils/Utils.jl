@@ -19,7 +19,11 @@ end
 
 function move_to_device(model::Models.GenerativeModel, device)
     model.ps = model.ps |> device
-    model.st = model.st |> device
+
+    if model.st !== nothing
+        model.st = model.st |> device
+    end
+
     model.device = device
     return model
 end

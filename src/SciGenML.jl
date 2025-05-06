@@ -16,19 +16,19 @@ using Zygote
 DEFAULT_TYPE = Float32
 ZERO_TOL = 1.0f-12
 
-DEFAULT_DEVICE = Lux.CPUDevice()
+DEFAULT_DEVICE = Lux.gpu_device()
 
 export DEFAULT_TYPE, ZERO_TOL
 
 include("config/Config.jl")
+
+include("layers/Layers.jl")
 
 include("architectures/Architectures.jl")
 
 include("models/Models.jl")
 
 include("utils/Utils.jl")
-
-include("layers/Layers.jl")
 
 include("time_integrators/TimeIntegrators.jl")
 

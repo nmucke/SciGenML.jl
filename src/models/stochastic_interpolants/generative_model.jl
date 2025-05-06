@@ -158,6 +158,10 @@ function drift_term(::Models.Stochastic, model::StochasticInterpolant, diffusion
 
         _, t = x
         diffusion = diffusion_fn(t)
+        diffusion = reshape(
+            diffusion,
+            ntuple(i -> i == ndims(x[1]) ? size(diffusion)[end] : 1, ndims(x[1]))
+        )
         return velocity .+ 0.5f0 .* diffusion .^ 2 .* score, st
     end
 
