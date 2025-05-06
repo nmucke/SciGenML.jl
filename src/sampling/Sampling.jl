@@ -10,6 +10,7 @@ module Sampling
 
 import SciGenML.DEFAULT_TYPE as DEFAULT_TYPE
 import SciGenML.ZERO_TOL as ZERO_TOL
+import SciGenML.DEFAULT_DEVICE as DEFAULT_DEVICE
 import SciGenML.Models as Models
 import SciGenML.Utils as Utils
 import SciGenML.TimeIntegrators as TimeIntegrators

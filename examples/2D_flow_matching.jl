@@ -15,12 +15,17 @@ import Random
 NUM_SAMPLES = 25000
 rng = Lux.Random.default_rng();
 
+##### Get the device determined by Lux #####
+dev = Lux.gpu_device()
+cpu_dev = Lux.CPUDevice()
+
 ##### Load config #####
 config =
     Configurations.from_toml(Config.Hyperparameters, "configs/2d_dense_flow_matching.toml");
 
 ##### Define generative model #####
 flow_matching_model = Models.FlowMatching(config,);
+flow_matching_model = Utils.move_to_device(flow_matching_model, dev);
 
 ##### Define training data #####
 x_data_dist = Distributions.Normal(0.0, 1.0);
@@ -61,6 +66,7 @@ flow_matching_samples, st = Sampling.sample(
     num_samples = NUM_SAMPLES,
     verbose = true
 );
+flow_matching_samples = flow_matching_samples |> cpu_dev
 
 p = Plots.plot(
     Plots.histogram2d(

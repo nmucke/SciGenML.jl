@@ -10,6 +10,7 @@ both deterministic and stochastic time integrators.
 module TimeIntegrators
 
 import SciGenML.DEFAULT_TYPE as DEFAULT_TYPE
+import SciGenML.DEFAULT_DEVICE as DEFAULT_DEVICE
 
 import SciGenML.Utils as Utils
 

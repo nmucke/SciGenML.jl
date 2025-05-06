@@ -12,6 +12,7 @@ import Lux
 
 import SciGenML.DEFAULT_TYPE as DEFAULT_TYPE
 import SciGenML.ZERO_TOL as ZERO_TOL
+import SciGenML.DEFAULT_DEVICE as DEFAULT_DEVICE
 
 import SciGenML.Config as Config
 import SciGenML.Architectures as Architectures

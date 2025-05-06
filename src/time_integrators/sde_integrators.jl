@@ -24,12 +24,13 @@ function sde_integrator(
     num_steps,
     ps,
     st;
+    device = DEFAULT_DEVICE,
     t_interval = [0.0f0, 1.0f0],
     verbose::Bool = true,
     rng::Random.AbstractRNG = Lux.Random.default_rng()
 )
-    dt = (t_interval[2] - t_interval[1]) / num_steps |> DEFAULT_TYPE
-    t = t_interval[1] .* ones(DEFAULT_TYPE, (1, size(x)[end]))
+    dt = (t_interval[2] - t_interval[1]) / num_steps |> DEFAULT_TYPE |> device
+    t = t_interval[1] .* ones(DEFAULT_TYPE, (1, size(x)[end])) |> device
 
     iter = Utils.get_iter(num_steps, verbose)
     for i in iter
