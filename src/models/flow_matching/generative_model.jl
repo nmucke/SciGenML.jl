@@ -14,6 +14,7 @@ mutable struct FlowMatching <: Models.GenerativeModel
     ps::Any
     st::Any
     trait::Any
+    device::Any
 
     function FlowMatching(velocity,)
         velocity_ps, velocity_st = Lux.setup(Lux.Random.default_rng(), velocity)
@@ -25,7 +26,8 @@ mutable struct FlowMatching <: Models.GenerativeModel
             velocity,
             ps,
             st,
-            Models.Deterministic()
+            Models.Deterministic(),
+            DEFAULT_DEVICE
         )
     end
 
@@ -40,7 +42,8 @@ mutable struct FlowMatching <: Models.GenerativeModel
             velocity,
             ps,
             st,
-            Models.Deterministic()
+            Models.Deterministic(),
+            DEFAULT_DEVICE
         )
     end
 

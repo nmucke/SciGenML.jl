@@ -10,6 +10,7 @@ mutable struct StochasticInterpolant <: GenerativeModel
     ps::Any
     st::Any
     trait::Any
+    device::Any
 
     ### Stochastic sampling interpolant
     # Constructor with velocity and score
@@ -25,7 +26,8 @@ mutable struct StochasticInterpolant <: GenerativeModel
             score,
             ps,
             st,
-            Models.Stochastic()
+            Models.Stochastic(),
+            DEFAULT_DEVICE
         )
     end
 
@@ -42,7 +44,8 @@ mutable struct StochasticInterpolant <: GenerativeModel
             score,
             ps,
             st,
-            Models.Stochastic()
+            Models.Stochastic(),
+            DEFAULT_DEVICE
         )
     end
 
@@ -58,7 +61,8 @@ mutable struct StochasticInterpolant <: GenerativeModel
             nothing,
             ps,
             st,
-            Models.Deterministic()
+            Models.Deterministic(),
+            DEFAULT_DEVICE
         )
     end
 
@@ -73,7 +77,8 @@ mutable struct StochasticInterpolant <: GenerativeModel
             nothing,
             ps,
             st,
-            Models.Deterministic()
+            Models.Deterministic(),
+            DEFAULT_DEVICE
         )
     end
 
@@ -116,7 +121,7 @@ mutable struct StochasticInterpolant <: GenerativeModel
         st::Any,
         trait::Any
     )
-        return new(interpolant_coefs, velocity, score, ps, st, trait)
+        return new(interpolant_coefs, velocity, score, ps, st, trait, device)
     end
 end
 

@@ -16,15 +16,17 @@ using Zygote
 DEFAULT_TYPE = Float32
 ZERO_TOL = 1.0f-12
 
-export DEFAULT_TYPE, ZERO_TOL
+DEFAULT_DEVICE = Lux.CPUDevice()
 
-include("utils/Utils.jl")
+export DEFAULT_TYPE, ZERO_TOL
 
 include("config/Config.jl")
 
 include("architectures/Architectures.jl")
 
 include("models/Models.jl")
+
+include("utils/Utils.jl")
 
 include("layers/Layers.jl")
 

@@ -233,6 +233,9 @@ function train(
 
         # Loop over batches
         for (x_batch, y_batch) in zip(x_batches, y_batches)
+            x_batch = x_batch |> model.device
+            y_batch = y_batch |> model.device
+
             # Training step
             velocity_loss, score_loss, train_state, velocity_stats, score_stats =
                 _train_step(Models.Stochastic(), model, x_batch, y_batch, train_state, rng)

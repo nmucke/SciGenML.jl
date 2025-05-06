@@ -13,6 +13,8 @@ import Plots
 import Random
 
 NUM_SAMPLES = 25000
+device = Lux.gpu_device();
+cpu_dev = Lux.CPUDevice();
 rng = Lux.Random.default_rng();
 
 ##### Load config #####
@@ -20,6 +22,7 @@ config = Configurations.from_toml(Config.Hyperparameters, "configs/2d_dense_SI.t
 
 ##### Define generative model #####
 SI_model = Models.StochasticInterpolant(config, Models.Stochastic());
+SI_model = Utils.move_to_device(SI_model, cpu_dev);
 
 ##### Define training data #####
 x_data_dist = Distributions.Normal(0.0, 1.0);
@@ -60,6 +63,7 @@ si_samples, st = Sampling.sample(
     num_samples = NUM_SAMPLES,
     verbose = true
 );
+si_samples = si_samples |> cpu_dev
 
 p = Plots.plot(
     Plots.histogram2d(

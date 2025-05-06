@@ -7,10 +7,15 @@ import SciGenML.Config as Config
 import SciGenML.Utils as Utils
 import SciGenML.TimeIntegrators as TimeIntegrators
 import Lux
+using LuxCUDA
 import Configurations
 import Distributions
 import Plots
 import Random
+
+# Get the device determined by Lux
+dev = Lux.gpu_device()
+cpu_dev = Lux.CPUDevice()
 
 NUM_SAMPLES = 10000
 rng = Lux.Random.default_rng();
@@ -20,6 +25,7 @@ config = Configurations.from_toml(Config.Hyperparameters, "configs/1d_dense_SI.t
 
 ##### Define generative model #####
 SI_model = Models.StochasticInterpolant(config,);
+SI_model = Utils.move_to_device(SI_model, dev);
 
 ##### Define training data #####
 x_data_dist = Distributions.Normal(0.0, 1.0);
@@ -45,9 +51,10 @@ si_samples, st = Sampling.sample(
     10;
     prior_samples = rand(rng, x_data_dist, (1, NUM_SAMPLES)),
     num_samples = NUM_SAMPLES,
-    verbose = true,
-    stepper = TimeIntegrators.heun_step
+    verbose = true
+    # stepper = TimeIntegrators.heun_step
 );
+si_samples = si_samples |> cpu_dev
 
 Plots.histogram(si_samples[1, :], bins = 100, normalize = :density, label = "SI samples")
 Plots.histogram!(y_data[1, :], bins = 100, normalize = :density, label = "Target samples")

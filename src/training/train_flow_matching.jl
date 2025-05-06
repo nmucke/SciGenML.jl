@@ -109,6 +109,9 @@ function train(
 
         # Loop over batches
         for (x_batch, y_batch) in zip(x_batches, y_batches)
+            x_batch = x_batch |> model.device
+            y_batch = y_batch |> model.device
+
             # Training step
             velocity_loss, train_state, velocity_stats = _train_step(
                 Models.Deterministic(),

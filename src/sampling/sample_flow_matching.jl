@@ -24,9 +24,11 @@ function sample(
 
     if isnothing(prior_samples)
         x_samples =
-            rand(rng, Distributions.Normal(0.0, 1.0), (1, num_samples)) .|> DEFAULT_TYPE
+            rand(rng, Distributions.Normal(0.0, 1.0), (1, num_samples)) .|>
+            DEFAULT_TYPE |>
+            model.device
     else
-        x_samples = prior_samples
+        x_samples = prior_samples |> model.device
         num_samples = size(x_samples)[end]
     end
 
@@ -38,7 +40,8 @@ function sample(
         model.ps.velocity,
         model.st.velocity;
         t_interval = [0.0f0, 1.0f0],
-        verbose = verbose
+        verbose = verbose,
+        device = model.device
     )
     st = (; velocity = velocity_st)
 
