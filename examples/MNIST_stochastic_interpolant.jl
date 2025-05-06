@@ -22,10 +22,16 @@ cpu_dev = Lux.CPUDevice();
 rng = Lux.Random.default_rng();
 
 ##### Load config #####
-config = Configurations.from_toml(Config.Hyperparameters, "configs/2d_dense_SI.toml");
+config = Configurations.from_toml(Config.Hyperparameters, "configs/unet_flow_matching.toml");
 
-unet = Architectures.UNet(1, 1, [16, 32, 64, 128], 1, 64, "constant");
-ps, st = Lux.setup(rng, unet);
+unet = Architectures.UNet(
+    config.architecture.in_channels,
+    config.architecture.out_channels,
+    config.architecture.hidden_channels,
+    config.architecture.in_conditioning_dim,
+    config.architecture.time_embedding_dim,
+    config.architecture.padding
+);
 
 ##### Define generative model #####
 SI_model = Models.StochasticInterpolant(unet, unet);
@@ -47,7 +53,7 @@ SI_model = Training.train(SI_model, data, config; verbose = true);
 ##### Sample using model #####
 si_samples, st = Sampling.sample(
     SI_model,
-    250;
+    50;
     prior_samples = rand(rng, x_data_dist, (32, 32, 1, 8)) .|> DEFAULT_TYPE,
     num_samples = NUM_SAMPLES,
     verbose = true

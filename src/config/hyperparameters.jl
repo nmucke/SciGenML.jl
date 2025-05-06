@@ -25,29 +25,35 @@ Configurations.@option "dense_neural_network" struct DenseNeuralNetworkHyperpara
 end
 
 """
-    PlaceholderHyperparameters
+    UNetHyperparameters
 
-    Hyperparameters for the placeholder.
+    Hyperparameters for the UNet.
 """
-Configurations.@option "placeholder" struct PlaceholderHyperparameters
-    in_features::Any
-    out_features::Int
-    channels::Vector{Int}
-    hidden_features::Vector{Int}
-    dropout::Any
+Configurations.@option "u_net" struct UNetHyperparameters
+    in_channels::Int
+    out_channels::Int
+    hidden_channels::Vector{Int}
+    in_conditioning_dim::Int
+    time_embedding_dim::Int
+    padding::String
 
     # CONSTRUCTOR
-    function PlaceholderHyperparameters(
-        in_features,
-        out_features,
-        channels,
-        hidden_features,
-        dropout
+    function UNetHyperparameters(
+        in_channels,
+        out_channels,
+        hidden_channels,
+        in_conditioning_dim,
+        time_embedding_dim,
+        padding
     )
-        if typeof(in_features) == Vector{Int}
-            in_features = Tuple(in_features)
-        end
-        return new(in_features, out_features, channels, hidden_features, dropout)
+        return new(
+            in_channels,
+            out_channels,
+            hidden_channels,
+            in_conditioning_dim,
+            time_embedding_dim,
+            padding
+        )
     end
 end
 
@@ -101,7 +107,7 @@ end
     Hyperparameters for the architecture, training, and optimizer.
 """
 Configurations.@option struct Hyperparameters
-    architecture::Union{DenseNeuralNetworkHyperparameters, PlaceholderHyperparameters}
+    architecture::Union{DenseNeuralNetworkHyperparameters, UNetHyperparameters}
     training::TrainingHyperparameters
     optimizer::OptimizerHyperparameters
     model::Union{StochasticInterpolantHyperparameters, FlowMatchingHyperparameters}

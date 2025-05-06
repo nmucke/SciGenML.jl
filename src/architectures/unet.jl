@@ -20,7 +20,7 @@ function UNet(
     out_channels::Int,
     hidden_channels,
     in_conditioning_dim::Int,
-    hidden_conditioning_dim::Int,
+    time_embedding_dim::Int,
     padding::String
 )
     reverse_hidden_channels = reverse(hidden_channels)
@@ -29,10 +29,10 @@ function UNet(
 
         # Conditioning embedding
         conditioning_embedding = Lux.Chain(
-            x -> Layers.sinusoidal_embedding(x, hidden_conditioning_dim),
-            Lux.Dense(hidden_conditioning_dim, hidden_conditioning_dim; use_bias = true),
+            x -> Layers.sinusoidal_embedding(x, time_embedding_dim),
+            Lux.Dense(time_embedding_dim, time_embedding_dim; use_bias = true),
             DEFAULT_ACTIVATION_FUNCTION,
-            Lux.Dense(hidden_conditioning_dim, hidden_conditioning_dim; use_bias = true)
+            Lux.Dense(time_embedding_dim, time_embedding_dim; use_bias = true)
         ),
 
         # Input
@@ -44,7 +44,7 @@ function UNet(
             Layers.multiple_conv_next_blocks(
                 in_channels = hidden_channels[i],
                 out_channels = hidden_channels[i + 1],
-                conditioning_dim = hidden_conditioning_dim
+                conditioning_dim = time_embedding_dim
             ) for i in 1:(length(hidden_channels) - 1)
         ],
 
@@ -64,7 +64,7 @@ function UNet(
         bottleneck_conv_next_block = Layers.multiple_conv_next_blocks(
             in_channels = hidden_channels[end],
             out_channels = hidden_channels[end],
-            conditioning_dim = hidden_conditioning_dim
+            conditioning_dim = time_embedding_dim
         ),
 
         ### Upsampling ###
@@ -83,7 +83,7 @@ function UNet(
             Layers.conv_next_block(
                 in_channels = reverse_hidden_channels[i],
                 out_channels = reverse_hidden_channels[i + 1],
-                conditioning_dim = hidden_conditioning_dim
+                conditioning_dim = time_embedding_dim
             ) for i in 1:(length(reverse_hidden_channels) - 1)
         ],
 

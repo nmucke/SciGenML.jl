@@ -16,15 +16,22 @@ import Random
 import MLDatasets
 import NNlib
 NUM_SAMPLES = 5000
+
 device = Lux.gpu_device();
 cpu_dev = Lux.CPUDevice();
 rng = Lux.Random.default_rng();
 
 ##### Load config #####
-config =
-    Configurations.from_toml(Config.Hyperparameters, "configs/2d_dense_flow_matching.toml");
+config = Configurations.from_toml(Config.Hyperparameters, "configs/unet_flow_matching.toml");
 
-unet = Architectures.UNet(1, 1, [16, 32, 64, 128], 1, 64, "constant");
+unet = Architectures.UNet(
+    config.architecture.in_channels,
+    config.architecture.out_channels,
+    config.architecture.hidden_channels,
+    config.architecture.in_conditioning_dim,
+    config.architecture.time_embedding_dim,
+    config.architecture.padding
+);
 
 ##### Define generative model #####
 FM_model = Models.FlowMatching(unet,);
