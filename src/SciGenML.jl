@@ -9,6 +9,7 @@ other modules in the package and makes them available to the user.
 
 module SciGenML
 
+using LuxCUDA
 import Lux
 import Optimisers
 using Zygote

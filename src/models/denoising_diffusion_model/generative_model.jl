@@ -22,23 +22,7 @@ mutable struct ScoreBasedDiffusionModel <: Models.GenerativeModel
         ps = (; score = score_ps)
         st = (; score = score_st)
         return new(
-            diffusion_interpolant_coefs(Models.Deterministic()),
-            score,
-            ps,
-            st,
-            Models.Stochastic(),
-            DEFAULT_DEVICE
-        )
-    end
-
-    # Constructor with interpolant type
-    function ScoreBasedDiffusionModel(score)
-        score_ps, score_st = Lux.setup(Lux.Random.default_rng(), score)
-
-        ps = (; score = score_ps)
-        st = (; score = score_st)
-        return new(
-            get_interpolant_coefs(Models.Deterministic()),
+            diffusion_interpolant_coefs(),
             score,
             ps,
             st,
@@ -50,7 +34,7 @@ mutable struct ScoreBasedDiffusionModel <: Models.GenerativeModel
     ### Constructor from config
     function ScoreBasedDiffusionModel(config::Config.Hyperparameters,)
 
-        # Define velocity model
+        # Define score model
         score_model = Architectures.DenseNeuralNetwork(
             config.architecture.in_features,
             config.architecture.out_features,

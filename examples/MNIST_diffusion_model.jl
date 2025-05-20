@@ -22,10 +22,8 @@ cpu_dev = Lux.CPUDevice();
 rng = Lux.Random.default_rng();
 
 ##### Load config #####
-config = Configurations.from_toml(
-    Config.Hyperparameters,
-    "configs/unet_stochastic_interpolant.toml"
-);
+config =
+    Configurations.from_toml(Config.Hyperparameters, "configs/unet_diffusion_model.toml");
 
 unet = Architectures.UNet(
     config.architecture.in_channels,
@@ -37,8 +35,8 @@ unet = Architectures.UNet(
 );
 
 ##### Define generative model #####
-SI_model = Models.StochasticInterpolant(unet, unet);
-SI_model = Utils.move_to_device(SI_model, device);
+diffusion_model = Models.ScoreBasedDiffusionModel(unet);
+diffusion_model = Utils.move_to_device(diffusion_model, device);
 
 ##### Get training data #####
 y_data, targets = MLDatasets.MNIST(split = :train)[:];
@@ -58,28 +56,21 @@ x_data = rand(rng, x_data_dist, (32, 32, 1, NUM_SAMPLES)) .|> DEFAULT_TYPE;
 
 ##### Train model #####
 data = (base = x_data_dist, target = y_data);
-SI_model = Training.train(SI_model, data, config; verbose = true);
+diffusion_model = Training.train(diffusion_model, data, config; verbose = true);
 
 ##### Sample using model #####
-si_samples, st = Sampling.sample(
-    SI_model,
+diffusion_samples, st = Sampling.sample(
+    diffusion_model,
     50;
     prior_samples = rand(rng, x_data_dist, (32, 32, 1, 8)) .|> DEFAULT_TYPE,
     num_samples = NUM_SAMPLES,
     verbose = true
 );
-SI_model.st = st;
-si_samples = si_samples |> cpu_dev;
-si_samples = clamp.(si_samples, 0.0f0, 1.0f0);
+diffusion_model.st = st;
+diffusion_samples = diffusion_samples |> cpu_dev;
+diffusion_samples = clamp.(diffusion_samples, 0.0f0, 1.0f0);
 
-p = Plots.plot(Plots.heatmap(si_samples[:, :, 1, 1]), Plots.heatmap(si_samples[:, :, 1, 2]))
-
-using Plots
-
-alpha = t -> exp.(-t)
-beta = t -> sqrt.(1.0f0 .- exp.(-2.0f0 .* t))
-
-t_vec = range(0.0f0, 5.0f0, length = 100)
-
-p = Plots.plot(t_vec, alpha.(t_vec), label = "alpha")
-p = Plots.plot!(t_vec, beta.(t_vec), label = "beta")
+p = Plots.plot(
+    Plots.heatmap(diffusion_samples[:, :, 1, 1]),
+    Plots.heatmap(diffusion_samples[:, :, 1, 2])
+)
