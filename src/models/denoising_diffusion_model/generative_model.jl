@@ -1,61 +1,61 @@
 """
-    DenoisingDiffusionModel
+    ScoreBasedDiffusionModel
 
-A denoising diffusion model generative model.
+A score-based diffusion model generative model.
 
-The denoising diffusion model generative model is a generative model that uses a denoising diffusion model approach to generate data.
+The score-based diffusion model generative model is a generative model that uses a score-based diffusion model approach to generate data.
 
 It is a special case of the stochastic interpolant generative model where there is no
 noise in the interpolant.
 """
-mutable struct DenoisingDiffusionModel <: Models.GenerativeModel
+mutable struct ScoreBasedDiffusionModel <: Models.GenerativeModel
     interpolant_coefs::Any
-    denoiser::Any
+    score::Any
     ps::Any
     st::Any
     trait::Any
     device::Any
 
-    function DenoisingDiffusionModel(denoiser,)
-        denoiser_ps, denoiser_st = Lux.setup(Lux.Random.default_rng(), denoiser)
+    function ScoreBasedDiffusionModel(score,)
+        score_ps, score_st = Lux.setup(Lux.Random.default_rng(), score)
 
-        ps = (; denoiser = denoiser_ps)
-        st = (; denoiser = denoiser_st)
+        ps = (; score = score_ps)
+        st = (; score = score_st)
         return new(
-            linear_interpolant_coefs(Models.Deterministic()),
-            denoiser,
+            diffusion_interpolant_coefs(Models.Deterministic()),
+            score,
             ps,
             st,
-            Models.Deterministic(),
+            Models.Stochastic(),
             DEFAULT_DEVICE
         )
     end
 
     # Constructor with interpolant type
-    function DenoisingDiffusionModel(interpolant_type::String, denoiser)
-        denoiser_ps, denoiser_st = Lux.setup(Lux.Random.default_rng(), denoiser)
+    function ScoreBasedDiffusionModel(score)
+        score_ps, score_st = Lux.setup(Lux.Random.default_rng(), score)
 
-        ps = (; denoiser = denoiser_ps)
-        st = (; denoiser = denoiser_st)
+        ps = (; score = score_ps)
+        st = (; score = score_st)
         return new(
-            get_interpolant_coefs(Models.Deterministic(), interpolant_type),
-            denoiser,
+            get_interpolant_coefs(Models.Deterministic()),
+            score,
             ps,
             st,
-            Models.Deterministic(),
+            Models.Stochastic(),
             DEFAULT_DEVICE
         )
     end
 
     ### Constructor from config
-    function DenoisingDiffusionModel(config::Config.Hyperparameters,)
+    function ScoreBasedDiffusionModel(config::Config.Hyperparameters,)
 
         # Define velocity model
-        denoiser_model = Architectures.DenseNeuralNetwork(
+        score_model = Architectures.DenseNeuralNetwork(
             config.architecture.in_features,
             config.architecture.out_features,
             config.architecture.hidden_features;
         );
-        return DenoisingDiffusionModel(config.model.interpolant_type, denoiser_model)
+        return ScoreBasedDiffusionModel(score_model)
     end
 end

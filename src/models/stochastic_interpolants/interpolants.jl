@@ -156,7 +156,7 @@ function diffusion_interpolant_coefs(multiplier::Real = 1.0f0)
     alpha_diff = t -> -multiplier .* exp.(-multiplier .* t)
     beta_diff =
         t ->
-            -2.0f0 .* multiplier .* exp.(-2.0f0 .* multiplier .* t) ./
+            multiplier .* exp.(-2.0f0 .* multiplier .* t) ./
             sqrt.(1.0f0 .- exp.(-2.0f0 .* multiplier .* t))
 
     return DeterministicInterpolantCoefs(alpha, beta, alpha_diff, beta_diff)
