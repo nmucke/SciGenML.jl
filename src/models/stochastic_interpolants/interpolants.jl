@@ -137,6 +137,32 @@ function quadratic_interpolant_coefs(trait::Union{Models.Deterministic, Models.S
 end
 
 """
+    diffusion_interpolant_coefs(trait::Models.Deterministic)
+
+    Returns the quadratic interpolant.
+
+    The quadratic interpolant is defined as:
+    α(t) = 1 - t
+    β(t) = t^2
+
+    The derivatives are:
+    α'(t) = -1
+    β'(t) = 2t
+"""
+function diffusion_interpolant_coefs(multiplier::Real = 1.0f0)
+    alpha = t -> exp.(-multiplier .* t)
+    beta = t -> sqrt.(1.0f0 .- exp.(-2.0f0 .* multiplier .* t))
+
+    alpha_diff = t -> -multiplier .* exp.(-multiplier .* t)
+    beta_diff =
+        t ->
+            -2.0f0 .* multiplier .* exp.(-2.0f0 .* multiplier .* t) ./
+            sqrt.(1.0f0 .- exp.(-2.0f0 .* multiplier .* t))
+
+    return DeterministicInterpolantCoefs(alpha, beta, alpha_diff, beta_diff)
+end
+
+"""
     Computes the deterministic interpolant at a given time.
 
     Args:
