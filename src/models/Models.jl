@@ -16,7 +16,7 @@ import SciGenML.DEFAULT_DEVICE as DEFAULT_DEVICE
 
 import SciGenML.Config as Config
 import SciGenML.Architectures as Architectures
-
+import SciGenML.Utils as Utils
 export GenerativeModel, ConditionalGenerativeModel
 
 """

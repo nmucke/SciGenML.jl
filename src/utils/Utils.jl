@@ -7,7 +7,6 @@ Module for utility functions.
 module Utils
 
 import ProgressBars
-import SciGenML.Models as Models
 
 function get_iter(num_epochs::Int, verbose::Bool)
     if verbose
@@ -17,7 +16,7 @@ function get_iter(num_epochs::Int, verbose::Bool)
     end
 end
 
-function move_to_device(model::Models.GenerativeModel, device)
+function move_to_device(model, device)
     model.ps = model.ps |> device
 
     if model.st !== nothing
@@ -28,6 +27,8 @@ function move_to_device(model::Models.GenerativeModel, device)
     return model
 end
 
-export get_iter, move_to_device
+reshape_scalar(x, ndims) = reshape(x, ntuple(i -> i == ndims ? size(x)[end] : 1, ndims))
+
+export get_iter, move_to_device, reshape_scalar
 
 end

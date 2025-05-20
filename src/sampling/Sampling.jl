@@ -39,6 +39,9 @@ include("sample_stochastic_interpolant.jl")
 ##### Flow Matching Sampling #####
 include("sample_flow_matching.jl")
 
+##### Denoising Diffusion Model Sampling #####
+include("sample_diffusion_model.jl")
+
 export sample
 
 end

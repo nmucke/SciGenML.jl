@@ -73,6 +73,9 @@ include("train_stochastic_interpolant.jl")
 ##### Flow Matching Training #####
 include("train_flow_matching.jl")
 
+##### Diffusion Model Training #####
+include("train_diffusion_model.jl")
+
 export train
 
 end

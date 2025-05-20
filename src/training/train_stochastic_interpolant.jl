@@ -18,8 +18,7 @@ end
 function compute_score_loss(model, ps, st, (x, z, gamma))
     y_pred, st_ = model(x, ps, st)
 
-    gamma =
-        reshape(gamma, ntuple(i -> i == ndims(x[1]) ? size(gamma)[end] : 1, ndims(x[1])))
+    gamma = Utils.reshape_scalar(gamma, ndims(x[1]))
 
     gamma = clamp.(gamma, 1.0f-5, Inf32)
 

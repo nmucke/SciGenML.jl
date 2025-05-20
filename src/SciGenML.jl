@@ -27,9 +27,9 @@ include("layers/Layers.jl")
 
 include("architectures/Architectures.jl")
 
-include("models/Models.jl")
-
 include("utils/Utils.jl")
+
+include("models/Models.jl")
 
 include("time_integrators/TimeIntegrators.jl")
 

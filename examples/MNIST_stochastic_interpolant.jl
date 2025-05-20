@@ -52,6 +52,7 @@ y_data = reshape(y_data, 28, 28, 1, :);
 y_data = y_data .|> DEFAULT_TYPE;
 y_data = NNlib.pad_zeros(y_data, (2, 2, 0, 0));
 y_data = permutedims(y_data, (2, 1, 3, 4));
+y_data = (y_data .- 0.5f0) ./ 0.5f0;
 
 x_data_dist = Distributions.Normal(0.0f0, 1.0f0);
 x_data = rand(rng, x_data_dist, (32, 32, 1, NUM_SAMPLES)) .|> DEFAULT_TYPE;
@@ -70,6 +71,5 @@ si_samples, st = Sampling.sample(
 );
 SI_model.st = st;
 si_samples = si_samples |> cpu_dev;
-si_samples = clamp.(si_samples, 0.0f0, 1.0f0);
 
 p = Plots.plot(Plots.heatmap(si_samples[:, :, 1, 1]), Plots.heatmap(si_samples[:, :, 1, 2]))
