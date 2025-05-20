@@ -22,7 +22,7 @@ function compute_score_loss(model, ps, st, (x, z, gamma))
         reshape(gamma, ntuple(i -> i == ndims(x[1]) ? size(gamma)[end] : 1, ndims(x[1])))
 
     loss = 0.5f0 .* (y_pred .^ 2)
-    loss = loss .+ 1.0f0 ./ (gamma .+ ZERO_TOL) .* z
+    loss = loss .+ 1.0f0 ./ (gamma .+ ZERO_TOL) .* z .* y_pred
     loss = Statistics.mean(loss)
 
     return loss, st_, (; y_pred = y_pred)
@@ -249,7 +249,7 @@ function train(
         velocity_loss = velocity_loss / length(x_batches)
         score_loss = score_loss / length(x_batches)
 
-        if verbose && (i % 50 == 0)
+        if verbose && (i % 10 == 0)
             println("Epoch $i: Velocity loss = $velocity_loss, Score loss = $score_loss")
             println(" ")
         end
@@ -328,7 +328,7 @@ function train(
 
         velocity_loss = velocity_loss / length(x_batches)
 
-        if verbose && (i % 50 == 0)
+        if verbose && (i % 10 == 0)
             println("Epoch $i: Velocity loss = $velocity_loss")
             println(" ")
         end

@@ -126,7 +126,7 @@ function train(
 
         velocity_loss = velocity_loss / length(x_batches)
 
-        if verbose && (i % 50 == 0)
+        if verbose && (i % 10 == 0)
             println("Epoch $i: Velocity loss = $velocity_loss")
             println(" ")
         end

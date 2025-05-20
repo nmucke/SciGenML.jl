@@ -38,7 +38,7 @@ function sample(
         num_samples = size(x_samples)[end]
     end
 
-    dt = 1.0 / num_steps |> DEFAULT_TYPE
+    # dt = 1.0 / num_steps |> DEFAULT_TYPE
 
     # Get drift term
     drift_term_fn = Models.drift_term(model, diffusion_fn)
@@ -52,23 +52,23 @@ function sample(
         num_steps,
         model.ps,
         model.st;
-        t_interval = [0.0f0, 1.0f0 - dt],
+        t_interval = [0.0f0, 1.0f0],
         verbose = verbose,
         rng = rng,
         device = model.device
     )
 
     # Compute last step using forward Euler
-    t_end = (1.0f0 - dt) .* ones(DEFAULT_TYPE, (1, num_samples))
-    x_samples, _, velocity_st = TimeIntegrators.RK4_step(
-        model.velocity,
-        x_samples,
-        t_end |> model.device,
-        dt,
-        model.ps.velocity,
-        model.st.velocity
-    )
-    st = (; velocity = velocity_st, score = model.st.score)
+    # t_end = (1.0f0 - dt) .* ones(DEFAULT_TYPE, (1, num_samples))
+    # x_samples, _, velocity_st = TimeIntegrators.RK4_step(
+    #     model.velocity,
+    #     x_samples,
+    #     t_end |> model.device,
+    #     dt,
+    #     model.ps.velocity,
+    #     model.st.velocity
+    # )
+    st = (; velocity = st.velocity, score = model.st.score)
 
     return x_samples, st
 end
