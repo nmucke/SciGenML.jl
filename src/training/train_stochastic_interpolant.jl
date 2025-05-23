@@ -232,23 +232,26 @@ function train(
         velocity_loss = 0.0
         score_loss = 0.0
 
-        # Prepare batches
-        x_batches, y_batches = prepare_batches(data, config.training.batch_size, rng)
+        # Prepare dataloader
+        dataloader = get_dataloader(
+            data,
+            config.training.batch_size,
+            config.training.match_base_and_target
+        )
 
         # Loop over batches
-        for (x_batch, y_batch) in zip(x_batches, y_batches)
-            x_batch = x_batch |> model.device
-            y_batch = y_batch |> model.device
+        for batch in dataloader
+            batch = batch .|> model.device
 
             # Training step
             velocity_loss, score_loss, train_state, velocity_stats, score_stats =
-                _train_step(Models.Stochastic(), model, x_batch, y_batch, train_state, rng)
+                _train_step(Models.Stochastic(), model, batch..., train_state, rng)
             velocity_loss += velocity_loss
             score_loss += score_loss
         end
 
-        velocity_loss = velocity_loss / length(x_batches)
-        score_loss = score_loss / length(x_batches)
+        velocity_loss = velocity_loss / length(dataloader)
+        score_loss = score_loss / length(dataloader)
 
         if verbose && (i % 10 == 0)
             println("Epoch $i: Velocity loss = $velocity_loss, Score loss = $score_loss")
@@ -310,24 +313,24 @@ function train(
     for i in iter
         velocity_loss = 0.0
 
-        # Prepare batches
-        x_batches, y_batches = prepare_batches(data, config.training.batch_size, rng)
+        # Prepare dataloader
+        dataloader = get_dataloader(
+            data,
+            config.training.batch_size,
+            config.training.match_base_and_target
+        )
 
         # Loop over batches
-        for (x_batch, y_batch) in zip(x_batches, y_batches)
+        for batch in dataloader
+            batch = batch .|> model.device
+
             # Training step
-            velocity_loss, train_state, velocity_stats = _train_step(
-                Models.Deterministic(),
-                model,
-                x_batch,
-                y_batch,
-                train_state,
-                rng
-            )
+            velocity_loss, train_state, velocity_stats =
+                _train_step(Models.Deterministic(), model, batch..., train_state, rng)
             velocity_loss += velocity_loss
         end
 
-        velocity_loss = velocity_loss / length(x_batches)
+        velocity_loss = velocity_loss / length(dataloader)
 
         if verbose && (i % 10 == 0)
             println("Epoch $i: Velocity loss = $velocity_loss")
