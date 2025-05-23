@@ -20,5 +20,7 @@ function get_interpolant_coefs(
         return linear_interpolant_coefs(trait)
     elseif type == "quadratic"
         return quadratic_interpolant_coefs(trait)
+    elseif type == "diffusion"
+        return diffusion_interpolant_coefs(trait)
     end
 end

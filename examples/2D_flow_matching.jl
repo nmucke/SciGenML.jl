@@ -61,7 +61,7 @@ flow_matching_model = Training.train(flow_matching_model, data, config; verbose 
 ##### Sample using model #####
 flow_matching_samples, st = Sampling.sample(
     flow_matching_model,
-    1000;
+    500;
     prior_samples = rand(rng, x_data_dist, (2, NUM_SAMPLES)) .|> DEFAULT_TYPE,
     num_samples = NUM_SAMPLES,
     verbose = true

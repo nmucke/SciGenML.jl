@@ -9,6 +9,7 @@ other modules in the package and makes them available to the user.
 
 module SciGenML
 
+using LuxCUDA
 import Lux
 import Optimisers
 using Zygote
@@ -26,9 +27,9 @@ include("layers/Layers.jl")
 
 include("architectures/Architectures.jl")
 
-include("models/Models.jl")
-
 include("utils/Utils.jl")
+
+include("models/Models.jl")
 
 include("time_integrators/TimeIntegrators.jl")
 

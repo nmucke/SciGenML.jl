@@ -52,11 +52,12 @@ p = Plots.plot(
 )
 
 ##### Train model #####
-data = (base = x_data, target = y_data);
+data = (base = x_data_dist, target = y_data);
 SI_model = Training.train(SI_model, data, config; verbose = true);
 
 ##### Sample using model #####
 si_samples, st = Sampling.sample(
+    Models.Stochastic(),
     SI_model,
     100;
     prior_samples = rand(rng, x_data_dist, (2, NUM_SAMPLES)) .|> DEFAULT_TYPE,

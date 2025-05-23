@@ -18,11 +18,12 @@ end
 function compute_score_loss(model, ps, st, (x, z, gamma))
     y_pred, st_ = model(x, ps, st)
 
-    gamma =
-        reshape(gamma, ntuple(i -> i == ndims(x[1]) ? size(gamma)[end] : 1, ndims(x[1])))
+    gamma = Utils.reshape_scalar(gamma, ndims(x[1]))
+
+    gamma = clamp.(gamma, 1.0f-5, Inf32)
 
     loss = 0.5f0 .* (y_pred .^ 2)
-    loss = loss .+ 1.0f0 ./ (gamma .+ ZERO_TOL) .* z .* y_pred
+    loss = loss .+ 1.0f0 ./ gamma .* z .* y_pred
     loss = Statistics.mean(loss)
 
     return loss, st_, (; y_pred = y_pred)

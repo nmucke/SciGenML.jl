@@ -137,6 +137,36 @@ function quadratic_interpolant_coefs(trait::Union{Models.Deterministic, Models.S
 end
 
 """
+    diffusion_interpolant_coefs(trait::Models.Deterministic)
+
+    Returns the quadratic interpolant.
+
+    The quadratic interpolant is defined as:
+    α(t) = exp(-multiplier * t)
+    β(t) = sqrt(1 - exp(-2 * multiplier * t))
+
+    The derivatives are:
+    α'(t) = -multiplier * exp(-multiplier * t)
+    β'(t) = multiplier * exp(-multiplier * t) / sqrt(1 - exp(-2 * multiplier * t))
+"""
+function diffusion_interpolant_coefs(multiplier::Real = 1.0f0)
+    # alpha = t -> exp.(-multiplier .* t)
+    alpha = t -> 1.0f0 .- t
+    # beta = t -> sqrt.(1.0f0 .- exp.(-2.0f0 .* multiplier .* t))
+    beta = t -> t
+
+    alpha_diff = t -> -fill!(similar(t, size(t)), 1.0f0)
+    beta_diff = t -> fill!(similar(t, size(t)), 1.0f0)
+
+    # alpha_diff = t -> -multiplier .* exp.(-multiplier .* t)
+    # beta_diff = t -> 
+    #         multiplier .* exp.(-2.0f0 .* multiplier .* t) ./
+    #         (sqrt.(1.0f0 .- exp.(-2.0f0 .* multiplier .* t)) .+ ZERO_TOL)
+
+    return DeterministicInterpolantCoefs(alpha, beta, alpha_diff, beta_diff)
+end
+
+"""
     Computes the deterministic interpolant at a given time.
 
     Args:
@@ -147,7 +177,7 @@ end
 """
 function compute_interpolant(x0, x1, t, interpolant_coefs::DeterministicInterpolantCoefs)
     # Expand t to match dimensions of x0 except for the last dimension
-    t = reshape(t, ntuple(i -> i == ndims(x0) ? size(t)[end] : 1, ndims(x0)))
+    t = Utils.reshape_scalar(t, ndims(x0))
 
     return interpolant_coefs.alpha(t) .* x0 .+ interpolant_coefs.beta(t) .* x1
 end
@@ -167,7 +197,7 @@ end
 function compute_interpolant(x0, x1, z, t, interpolant_coefs::StochasticInterpolantCoefs)
 
     # Expand t to match dimensions of x0 except for the last dimension
-    t = reshape(t, ntuple(i -> i == ndims(x0) ? size(t)[end] : 1, ndims(x0)))
+    t = Utils.reshape_scalar(t, ndims(x0))
 
     return interpolant_coefs.alpha(t) .* x0 .+ interpolant_coefs.beta(t) .* x1 .+
            interpolant_coefs.gamma(t) .* z
@@ -192,7 +222,7 @@ function compute_interpolant_diff(
 )
 
     # Expand t to match dimensions of x0 except for the last dimension
-    t = reshape(t, ntuple(i -> i == ndims(x0) ? size(t)[end] : 1, ndims(x0)))
+    t = Utils.reshape_scalar(t, ndims(x0))
 
     return interpolant_coefs.alpha_diff(t) .* x0 .+ interpolant_coefs.beta_diff(t) .* x1
 end
@@ -206,7 +236,7 @@ function compute_interpolant_diff(
 )
 
     # Expand t to match dimensions of x0 except for the last dimension
-    t = reshape(t, ntuple(i -> i == ndims(x0) ? size(t)[end] : 1, ndims(x0)))
+    t = Utils.reshape_scalar(t, ndims(x0))
 
     return interpolant_coefs.alpha_diff(t) .* x0 .+ interpolant_coefs.beta_diff(t) .* x1 .+
            interpolant_coefs.gamma_diff(t) .* z

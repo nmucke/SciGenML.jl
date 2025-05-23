@@ -102,6 +102,15 @@ Configurations.@option "stochastic_interpolant" struct StochasticInterpolantHype
 end
 
 """
+    ScoreBasedDiffusionModelHyperparameters
+
+    Hyperparameters for the score-based diffusion model generative model.
+"""
+Configurations.@option "score_based_diffusion_model" struct ScoreBasedDiffusionModelHyperparameters
+    interpolant_type::String
+end
+
+"""
     Hyperparameters
 
     Hyperparameters for the architecture, training, and optimizer.
@@ -110,5 +119,9 @@ Configurations.@option struct Hyperparameters
     architecture::Union{DenseNeuralNetworkHyperparameters, UNetHyperparameters}
     training::TrainingHyperparameters
     optimizer::OptimizerHyperparameters
-    model::Union{StochasticInterpolantHyperparameters, FlowMatchingHyperparameters}
+    model::Union{
+        StochasticInterpolantHyperparameters,
+        FlowMatchingHyperparameters,
+        ScoreBasedDiffusionModelHyperparameters
+    }
 end

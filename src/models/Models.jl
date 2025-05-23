@@ -16,7 +16,7 @@ import SciGenML.DEFAULT_DEVICE as DEFAULT_DEVICE
 
 import SciGenML.Config as Config
 import SciGenML.Architectures as Architectures
-
+import SciGenML.Utils as Utils
 export GenerativeModel, ConditionalGenerativeModel
 
 """
@@ -47,7 +47,7 @@ include("flow_matching/generative_model.jl")
 export DeterministicInterpolantCoefs, StochasticInterpolantCoefs
 
 # Specific interpolants
-export linear_interpolant_coefs, quadratic_interpolant_coefs
+export linear_interpolant_coefs, quadratic_interpolant_coefs, diffusion_interpolant_coefs
 
 # Interpolant functions
 export compute_interpolant, compute_interpolant_diff
@@ -55,5 +55,10 @@ export compute_interpolant, compute_interpolant_diff
 # Stochastic interpolant generative model
 export StochasticInterpolant
 export drift_term
+
+# Score-based diffusion model
+include("denoising_diffusion_model/generative_model.jl")
+
+export ScoreBasedDiffusionModel
 
 end
