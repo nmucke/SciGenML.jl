@@ -67,11 +67,24 @@ mutable struct FollmerStochasticInterpolant <: Models.ConditionalGenerativeModel
     end
 end
 
-function compute_score(model::FollmerStochasticInterpolant, x, ps, st, diffusion_fn)
-    velocity, _velocity_st = model.velocity(x, ps.velocity, st.velocity)
-    st = (; velocity = _velocity_st)
+function compute_score(model::FollmerStochasticInterpolant, velocity, x)
+    x, f, t = x
+    t = Utils.reshape_scalar(t, ndims(x))
 
-    return velocity, st
+    alpha = model.interpolant_coefs.alpha(t)
+    beta = model.interpolant_coefs.beta(t)
+
+    alpha_diff = model.interpolant_coefs.alpha_diff(t)
+    beta_diff = model.interpolant_coefs.beta_diff(t)
+
+    gamma = model.interpolant_coefs.gamma(t)
+    gamma_diff = model.interpolant_coefs.gamma_diff(t)
+
+    A = t .* gamma .* (beta_diff .* gamma .- gamma_diff .* beta)
+    A = 1.0f0 ./ (A .+ ZERO_TOL)
+    c = beta_diff .* x .+ (beta .* alpha_diff - beta_diff .* alpha) .* f
+
+    return A .* (beta .* velocity .- c)
 end
 
 """
@@ -81,7 +94,7 @@ end
 
     Compute the drift term for a stochsatic interpolant.
 """
-function drift_term(model::FollmerStochasticInterpolant)
+function drift_term(model::FollmerStochasticInterpolant, diffusion_fn = nothing)
     function drift_wrapper(x, ps, st; model = model)
         velocity, _velocity_st = model.velocity(x, ps.velocity, st.velocity)
         st = (; velocity = _velocity_st)
@@ -100,18 +113,22 @@ end
 
     Compute the drift term for a stochsatic interpolant.
 """
-function drift_term(model::FollmerStochasticInterpolant, diffusion_fn)
+function drift_term(model::FollmerStochasticInterpolant, diffusion_fn::Function)
     function drift_wrapper(x, ps, st; model = model)
         velocity, _velocity_st = model.velocity(x, ps.velocity, st.velocity)
         st = (; velocity = _velocity_st)
 
-        _, t = x
+        score = compute_score(model, velocity, x)
+
+        t = x[end]
+        t = Utils.reshape_scalar(t, ndims(x[1]))
+
         diffusion = diffusion_fn(t)
-        diffusion = reshape(
-            diffusion,
-            ntuple(i -> i == ndims(x[1]) ? size(diffusion)[end] : 1, ndims(x[1]))
-        )
-        return velocity
+
+        gamma = model.interpolant_coefs.gamma(t)
+
+        return velocity + 0.5f0 .* (diffusion .^ 2 - gamma .^ 2) .* score, st
     end
+
     return drift_wrapper
 end

@@ -207,22 +207,19 @@ end
 function sample(
     ::Models.Stochastic,
     model::Models.FollmerStochasticInterpolant,
-    field_conditioning,
+    conditioning,
     num_steps::Int;
     num_samples::Int = 1000,
     prior_samples = nothing,
     diffusion_fn = nothing,
     rng::Random.AbstractRNG = Random.default_rng(),
     verbose::Bool = true,
-    stepper = TimeIntegrators.heun_step
+    stepper = TimeIntegrators.heun_step,
+    ode_stepper = TimeIntegrators.RK4_step
 )
     model.st = (; velocity = Lux.testmode(model.st.velocity))
 
-    field_conditioning = field_conditioning |> model.device
-
-    if isnothing(diffusion_fn)
-        diffusion_fn = t -> model.interpolant_coefs.gamma(t)
-    end
+    conditioning = conditioning .|> model.device
 
     if isnothing(prior_samples)
         x_samples =
@@ -234,28 +231,43 @@ function sample(
         num_samples = size(x_samples)[end]
     end
 
-    # dt = 1.0 / num_steps |> DEFAULT_TYPE
+    dt = 1.0 / num_steps |> DEFAULT_TYPE
 
-    # Get drift term
-    drift_term_fn = Models.drift_term(model)
+    if isnothing(diffusion_fn)
+        diffusion_fn = t -> model.interpolant_coefs.gamma(t)
+    end
 
     # Solve SDE
     x_samples, st = TimeIntegrators.sde_integrator(
         stepper,
-        drift_term_fn,
+        Models.drift_term(model, diffusion_fn),
         diffusion_fn,
         x_samples,
-        field_conditioning,
+        conditioning,
         num_steps,
         model.ps,
         model.st;
-        t_interval = [0.0f0, 1.0f0],
+        t_interval = [0.0f0, 1.0f0 - dt],
         verbose = verbose,
         rng = rng,
         device = model.device
     )
+    model.st = (; velocity = st.velocity)
 
-    st = (; velocity = st.velocity)
+    x_samples, st = TimeIntegrators.ode_integrator(
+        ode_stepper,
+        Models.drift_term(model),
+        x_samples,
+        conditioning,
+        1,
+        model.ps,
+        model.st;
+        t_interval = [1.0f0 - dt, 1.0f0],
+        verbose = false,
+        device = model.device
+    )
+
+    st = (; velocity = st)
 
     return x_samples, st
 end

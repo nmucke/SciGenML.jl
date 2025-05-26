@@ -69,16 +69,18 @@ SI_model = Training.train(SI_model, data, config; verbose = true);
 
 ##### Sample using model #####
 num_gen_samples = 8
-num_steps = 250
+num_steps = 50
 gen_c_data = x_data[:, :, :, 1:num_gen_samples];
 si_samples, st = Sampling.sample(
     Models.Stochastic(),
     SI_model,
-    gen_c_data,
+    (gen_c_data,),
     num_steps;
     prior_samples = x_data[:, :, :, 1:num_gen_samples],
     num_samples = NUM_SAMPLES,
-    verbose = true
+    verbose = true,
+    stepper = TimeIntegrators.euler_maruyama_step,
+    diffusion_fn = t -> 5.5f0 .* (1.0f0 .- t)
 );
 si_samples = si_samples |> cpu_dev;
 
