@@ -71,9 +71,9 @@ FM_model = Training.train(FM_model, data, config; verbose = true);
 ##### Sample using model #####
 num_gen_samples = 8
 num_steps = 50
-gen_c_data = 2 .* ones(DEFAULT_TYPE, 1, num_gen_samples);
+gen_c_data = c_data[:, 1:num_gen_samples];
 labels = ["$(gen_c_data[i])" for i in 1:num_gen_samples];
-FM_model.guidance_scale = 0.75f0;
+FM_model.guidance_scale = 0.99f0;
 fm_samples, st = Sampling.sample(
     Models.Deterministic(),
     FM_model,
