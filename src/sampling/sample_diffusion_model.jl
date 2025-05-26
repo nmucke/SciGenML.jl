@@ -82,8 +82,8 @@ end
 function sample(
     ::Models.Stochastic,
     model::Models.ScoreBasedDiffusionModel,
-    num_steps::Int;
     scalar_conditioning,
+    num_steps::Int;
     num_samples::Int = 1000,
     prior_samples = nothing,
     diffusion_fn = nothing,

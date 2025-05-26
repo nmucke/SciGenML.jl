@@ -59,6 +59,7 @@ y_data = reshape(y_data, 28, 28, 1, :);
 y_data = y_data .|> DEFAULT_TYPE;
 y_data = NNlib.pad_zeros(y_data, (2, 2, 0, 0));
 y_data = permutedims(y_data, (2, 1, 3, 4));
+y_data = reverse(y_data, dims = 1);
 y_data = (y_data .- 0.5f0) ./ 0.5f0;
 
 x_data_dist = Distributions.Normal(0.0f0, 1.0f0);
@@ -69,11 +70,12 @@ data = (base = x_data_dist, target = y_data, scalar_conditioning = c_data);
 FM_model = Training.train(FM_model, data, config; verbose = true);
 
 ##### Sample using model #####
+num_gen_samples = 8
 fm_samples, st = Sampling.sample(
     Models.Deterministic(),
     FM_model,
-    250;
-    scalar_conditioning = c_data[:, 1:8],
+    scalar_conditioning = c_data[:, 1:num_gen_samples],
+    num_gen_samples;
     prior_samples = rand(rng, x_data_dist, (32, 32, 1, 8)) .|> DEFAULT_TYPE,
     num_samples = NUM_SAMPLES,
     verbose = true

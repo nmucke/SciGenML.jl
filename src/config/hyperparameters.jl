@@ -45,10 +45,11 @@ Configurations.@option "u_net" struct UNetHyperparameters
         hidden_channels,
         time_embedding_dim,
         padding,
-        in_conditioning_dim::Union{Int, Nothing} = nothing,
-        hidden_conditioning_dim::Union{Int, Nothing} = nothing
+        scalar_in_conditioning_dim::Union{Int, Nothing} = nothing,
+        scalar_hidden_conditioning_dim::Union{Int, Nothing} = nothing
     )
-        if isnothing(in_conditioning_dim) && isnothing(hidden_conditioning_dim)
+        if isnothing(scalar_in_conditioning_dim) &&
+           isnothing(scalar_hidden_conditioning_dim)
             return new(
                 in_channels,
                 out_channels,
@@ -63,8 +64,8 @@ Configurations.@option "u_net" struct UNetHyperparameters
                 hidden_channels,
                 time_embedding_dim,
                 padding,
-                in_conditioning_dim,
-                hidden_conditioning_dim
+                scalar_in_conditioning_dim,
+                scalar_hidden_conditioning_dim
             )
         end
     end

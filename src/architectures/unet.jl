@@ -152,27 +152,39 @@ function UNet(
     out_channels::Int,
     hidden_channels,
     time_embedding_dim::Int,
-    in_conditioning_dim::Int,
-    hidden_conditioning_dim::Int,
+    scalar_in_conditioning_dim::Int,
+    scalar_hidden_conditioning_dim::Int,
     padding::String
 )
     reverse_hidden_channels = reverse(hidden_channels)
 
-    conditioning_and_time_embedding_dim = time_embedding_dim + hidden_conditioning_dim
+    conditioning_and_time_embedding_dim =
+        time_embedding_dim + scalar_hidden_conditioning_dim
 
     model = Lux.@compact(
 
-        # Conditioning embedding
+        # Time embedding
         time_embedding = Lux.Chain(
             x -> Layers.sinusoidal_embedding(x, time_embedding_dim),
             Lux.Dense(time_embedding_dim, time_embedding_dim; use_bias = true),
             DEFAULT_ACTIVATION_FUNCTION,
             Lux.Dense(time_embedding_dim, time_embedding_dim; use_bias = false)
         ),
-        conditioning_embedding = Lux.Chain(
-            Lux.Dense(in_conditioning_dim, hidden_conditioning_dim; use_bias = true),
+
+        # Scalar conditioning embedding
+        scalar_conditioning_embedding = Lux.Chain(
+            x -> Layers.sinusoidal_embedding(x, scalar_hidden_conditioning_dim),
+            Lux.Dense(
+                scalar_hidden_conditioning_dim,
+                scalar_hidden_conditioning_dim;
+                use_bias = true
+            ),
             DEFAULT_ACTIVATION_FUNCTION,
-            Lux.Dense(hidden_conditioning_dim, hidden_conditioning_dim; use_bias = false)
+            Lux.Dense(
+                scalar_hidden_conditioning_dim,
+                scalar_hidden_conditioning_dim;
+                use_bias = false
+            )
         ),
 
         # Input
@@ -239,7 +251,7 @@ function UNet(
         t = time_embedding(t)
 
         # conditioning embedding
-        c = conditioning_embedding(c)
+        c = scalar_conditioning_embedding(c)
         c_and_t = vcat(c, t)
 
         # downsampling

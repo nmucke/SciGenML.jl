@@ -24,7 +24,7 @@ rng = Lux.Random.default_rng();
 ##### Load config #####
 config = Configurations.from_toml(
     Config.Hyperparameters,
-    "configs/scalar_conditional_unet_diffusion_model.toml"
+    "configs/scalar_conditional_unet_stochastic_interpolant.toml"
 );
 
 unet = Architectures.UNet(
@@ -38,8 +38,8 @@ unet = Architectures.UNet(
 );
 
 ##### Define generative model #####
-DM_model = Models.ScoreBasedDiffusionModel(unet,);
-DM_model = Utils.move_to_device(DM_model, device);
+SI_model = Models.StochasticInterpolant(unet, unet);
+SI_model = Utils.move_to_device(SI_model, device);
 
 ##### Get training data #####
 y_data, c_data = MLDatasets.MNIST(split = :train)[:];
@@ -68,23 +68,22 @@ x_data = rand(rng, x_data_dist, (32, 32, 1, NUM_SAMPLES)) .|> DEFAULT_TYPE;
 
 ##### Train model #####
 data = (base = x_data_dist, target = y_data, scalar_conditioning = c_data);
-DM_model = Training.train(DM_model, data, config; verbose = true);
+SI_model = Training.train(SI_model, data, config; verbose = true);
 
 ##### Sample using model #####
 num_gen_samples = 8
 num_steps = 250
-gen_c_data = 3 .* ones(DEFAULT_TYPE, 1, num_gen_samples);
-dm_samples, st = Sampling.sample(
-    DM_model,
-    c_data[:, 1:num_gen_samples],
+gen_c_data = 1.0 .* ones(DEFAULT_TYPE, 1, num_gen_samples);
+si_samples, st = Sampling.sample(
+    Models.Stochastic(),
+    SI_model,
+    gen_c_data,
     num_steps;
     prior_samples = rand(rng, x_data_dist, (32, 32, 1, num_gen_samples)) .|> DEFAULT_TYPE,
     num_samples = NUM_SAMPLES,
     verbose = true
 );
-dm_samples = dm_samples |> cpu_dev;
+si_samples = si_samples |> cpu_dev;
 
-heatmaps = [
-    Plots.heatmap(dm_samples[:, :, 1, i], title = "$(c_data[i])") for i in 1:num_gen_samples
-];
+heatmaps = [Plots.heatmap(si_samples[:, :, 1, i], title = "$(gen_c_data[i])") for i in 1:8];
 p = Plots.plot(heatmaps...)

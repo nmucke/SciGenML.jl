@@ -3,6 +3,17 @@ SUPPORTED_OPTIMIZERS = ["adam", "adamw"]
 SUPPORTED_LOSS_FUNCTIONS = ["mse"]
 
 """
+    compute_velocity_loss(model, ps, st, (x, y))
+
+    Compute the loss for a stochastic interpolant generative model.
+"""
+function compute_velocity_loss(model, ps, st, (x, y))
+    y_pred, st_ = model(x, ps, st)
+    loss = MSE_LOSS_FN(y_pred, y)
+    return loss, st_, (; y_pred = y_pred)
+end
+
+"""
     get_optimizer(type::String, lr::Float32, lambda::Float32)
 
     Get an optimizer from a string.
@@ -67,7 +78,7 @@ end
     get_dataloader(
         base,
         target,
-        conditioning,
+        scalar_conditioning,
         batch_size::Int,
         match_base_and_target::Bool=false
     )
@@ -77,7 +88,7 @@ end
 function get_dataloader(
     base,
     target,
-    conditioning,
+    scalar_conditioning,
     batch_size::Int,
     match_base_and_target::Bool = false,
     rng = Random.default_rng()
@@ -92,7 +103,7 @@ function get_dataloader(
     end
 
     return DataLoaders.DataLoader(
-        DataLoaders.shuffleobs((base, target, conditioning)),
+        DataLoaders.shuffleobs((base, target, scalar_conditioning)),
         batch_size
     )
 end

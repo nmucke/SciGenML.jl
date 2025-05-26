@@ -62,8 +62,8 @@ end
 function sample(
     ::Models.Deterministic,
     model::Models.FlowMatching,
-    num_steps::Int;
     scalar_conditioning,
+    num_steps::Int;
     num_samples::Int = 1000,
     prior_samples = nothing,
     rng::Random.AbstractRNG = Random.default_rng(),
