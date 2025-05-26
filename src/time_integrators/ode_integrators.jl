@@ -52,7 +52,7 @@ function ode_integrator(
     stepper,
     rhs,
     x,
-    scalar_conditioning,
+    conditioning,
     num_steps,
     ps,
     st;
@@ -65,7 +65,7 @@ function ode_integrator(
 
     iter = Utils.get_iter(num_steps, verbose)
     for i in iter
-        x, t, st = stepper(rhs, x, scalar_conditioning, t, dt, ps, st)
+        x, t, st = stepper(rhs, x, conditioning, t, dt, ps, st)
     end
     return x, st
 end
@@ -94,10 +94,10 @@ end
 
     Perform a forward Euler step.
 """
-function forward_euler_step(rhs, x, scalar_conditioning, t, dt, ps, st)
+function forward_euler_step(rhs, x, conditioning, t, dt, ps, st)
 
     # Get rhs_output
-    rhs_output, st = rhs((x, scalar_conditioning, t), ps, st)
+    rhs_output, st = rhs((x, conditioning..., t), ps, st)
 
     # Compute next state
     x_next = x .+ dt .* rhs_output
@@ -131,19 +131,19 @@ function RK4_step(rhs, x, t, dt, ps, st)
 end
 
 """
-    RK4_step(rhs, x, scalar_conditioning, t, dt, ps, st)
+    RK4_step(rhs, x, conditioning, t, dt, ps, st)
 
     Perform a 4th order Runge-Kutta step.
 """
-function RK4_step(rhs, x, scalar_conditioning, t, dt, ps, st)
+function RK4_step(rhs, x, conditioning, t, dt, ps, st)
 
     # Get rhs_output
-    stage_1, st = rhs((x, scalar_conditioning, t), ps, st)
+    stage_1, st = rhs((x, conditioning..., t), ps, st)
     stage_2, st =
-        rhs((x .+ dt * stage_1 ./ 2.0f0, scalar_conditioning, t .+ dt ./ 2.0f0), ps, st)
+        rhs((x .+ dt * stage_1 ./ 2.0f0, conditioning..., t .+ dt ./ 2.0f0), ps, st)
     stage_3, st =
-        rhs((x .+ dt * stage_2 ./ 2.0f0, scalar_conditioning, t .+ dt ./ 2.0f0), ps, st)
-    stage_4, st = rhs((x .+ dt * stage_3, scalar_conditioning, t .+ dt), ps, st)
+        rhs((x .+ dt * stage_2 ./ 2.0f0, conditioning..., t .+ dt ./ 2.0f0), ps, st)
+    stage_4, st = rhs((x .+ dt * stage_3, conditioning..., t .+ dt), ps, st)
 
     # Compute next state
     x_next = x .+ dt .* (stage_1 .+ 2.0f0 * stage_2 .+ 2.0f0 * stage_3 .+ stage_4) ./ 6.0f0

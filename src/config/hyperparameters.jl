@@ -35,8 +35,11 @@ Configurations.@option "u_net" struct UNetHyperparameters
     hidden_channels::Vector{Int}
     time_embedding_dim::Int
     padding::String
-    in_conditioning_dim::Union{Int, Nothing} = nothing
-    hidden_conditioning_dim::Union{Int, Nothing} = nothing
+    scalar_in_conditioning_dim::Union{Int, Nothing} = nothing
+    scalar_hidden_conditioning_dim::Union{Int, Nothing} = nothing
+    field_in_conditioning_dim::Union{Int, Nothing} = nothing
+    field_hidden_conditioning_dim::Union{Int, Nothing} = nothing
+    field_conditioning_combination::Union{String, Nothing} = nothing
 
     # CONSTRUCTOR
     function UNetHyperparameters(
@@ -46,10 +49,19 @@ Configurations.@option "u_net" struct UNetHyperparameters
         time_embedding_dim,
         padding,
         scalar_in_conditioning_dim::Union{Int, Nothing} = nothing,
-        scalar_hidden_conditioning_dim::Union{Int, Nothing} = nothing
+        scalar_hidden_conditioning_dim::Union{Int, Nothing} = nothing,
+        field_in_conditioning_dim::Union{Int, Nothing} = nothing,
+        field_hidden_conditioning_dim::Union{Int, Nothing} = nothing,
+        field_conditioning_combination::Union{String, Nothing} = nothing
     )
-        if isnothing(scalar_in_conditioning_dim) &&
-           isnothing(scalar_hidden_conditioning_dim)
+        has_scalar_conditioning =
+            !isnothing(scalar_in_conditioning_dim) &&
+            !isnothing(scalar_hidden_conditioning_dim)
+        has_field_conditioning =
+            !isnothing(field_in_conditioning_dim) &&
+            !isnothing(field_hidden_conditioning_dim)
+
+        if !has_scalar_conditioning && !has_field_conditioning
             return new(
                 in_channels,
                 out_channels,
@@ -57,7 +69,7 @@ Configurations.@option "u_net" struct UNetHyperparameters
                 time_embedding_dim,
                 padding
             )
-        else
+        elseif has_scalar_conditioning && !has_field_conditioning
             return new(
                 in_channels,
                 out_channels,
@@ -67,6 +79,21 @@ Configurations.@option "u_net" struct UNetHyperparameters
                 scalar_in_conditioning_dim,
                 scalar_hidden_conditioning_dim
             )
+        elseif !has_scalar_conditioning && has_field_conditioning
+            return new(
+                in_channels,
+                out_channels,
+                hidden_channels,
+                time_embedding_dim,
+                padding,
+                nothing,
+                nothing,
+                field_in_conditioning_dim,
+                field_hidden_conditioning_dim,
+                field_conditioning_combination
+            )
+        else
+            throw(ArgumentError("Invalid combination of conditioning dimensions."))
         end
     end
 end
@@ -129,6 +156,15 @@ Configurations.@option "stochastic_interpolant" struct StochasticInterpolantHype
 end
 
 """
+    FollmerStochasticInterpolantHyperparameters
+
+    Hyperparameters for the follmer stochastic interpolant generative model.
+"""
+Configurations.@option "follmer_stochastic_interpolant" struct FollmerStochasticInterpolantHyperparameters
+    interpolant_type::String
+end
+
+"""
     ScoreBasedDiffusionModelHyperparameters
 
     Hyperparameters for the score-based diffusion model generative model.
@@ -148,6 +184,7 @@ Configurations.@option struct Hyperparameters
     optimizer::OptimizerHyperparameters
     model::Union{
         StochasticInterpolantHyperparameters,
+        FollmerStochasticInterpolantHyperparameters,
         FlowMatchingHyperparameters,
         ConditionalFlowMatchingHyperparameters,
         ScoreBasedDiffusionModelHyperparameters

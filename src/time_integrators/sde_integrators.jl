@@ -63,7 +63,7 @@ function sde_integrator(
     drift_term_fn,
     diffusion_term_fn,
     x,
-    scalar_conditioning,
+    conditioning,
     num_steps,
     ps,
     st;
@@ -81,7 +81,7 @@ function sde_integrator(
             drift_term_fn,
             diffusion_term_fn,
             x,
-            scalar_conditioning,
+            conditioning,
             t,
             dt,
             ps,
@@ -116,10 +116,7 @@ function euler_maruyama_step(
 
     # Get diffusion
     diffusion = diffusion_term_fn(t)
-    diffusion = reshape(
-        diffusion,
-        ntuple(i -> i == ndims(x[1]) ? size(diffusion)[end] : 1, ndims(x[1]))
-    )
+    diffusion = Utils.reshape_scalar(diffusion, ndims(x[1]))
     x = x .+ sqrt(dt) .* diffusion .* z
 
     # Update time
@@ -134,7 +131,7 @@ function euler_maruyama_step(
     drift_term_fn,
     diffusion_term_fn,
     x,
-    scalar_conditioning,
+    conditioning,
     t,
     dt,
     ps,
@@ -143,7 +140,7 @@ function euler_maruyama_step(
 )
 
     # Get drift
-    drift, st = drift_term_fn((x, scalar_conditioning, t), ps, st)
+    drift, st = drift_term_fn((x, conditioning..., t), ps, st)
     x = x .+ dt .* drift
 
     # Get gaussian noise
@@ -151,10 +148,7 @@ function euler_maruyama_step(
 
     # Get diffusion
     diffusion = diffusion_term_fn(t)
-    diffusion = reshape(
-        diffusion,
-        ntuple(i -> i == ndims(x[1]) ? size(diffusion)[end] : 1, ndims(x[1]))
-    )
+    diffusion = Utils.reshape_scalar(diffusion, ndims(x))
     x = x .+ sqrt(dt) .* diffusion .* z
 
     # Update time
@@ -185,10 +179,7 @@ function heun_step(
 
     # Get diffusion
     em_diffusion = diffusion_term_fn(t)
-    em_diffusion = reshape(
-        em_diffusion,
-        ntuple(i -> i == ndims(x) ? size(em_diffusion)[end] : 1, ndims(x))
-    )
+    em_diffusion = Utils.reshape_scalar(em_diffusion, ndims(x))
     em_x = em_x .+ sqrt(dt) .* em_diffusion .* z
 
     ### Corrector step ###
@@ -197,10 +188,7 @@ function heun_step(
 
     # Get diffusion
     corrected_diffusion = diffusion_term_fn(t .+ dt)
-    corrected_diffusion = reshape(
-        corrected_diffusion,
-        ntuple(i -> i == ndims(x) ? size(corrected_diffusion)[end] : 1, ndims(x))
-    )
+    corrected_diffusion = Utils.reshape_scalar(corrected_diffusion, ndims(x))
 
     # Get final drift and diffusion
     final_drift = (em_drift .+ corrected_drift) / 2
@@ -222,7 +210,7 @@ function heun_step(
     drift_term_fn,
     diffusion_term_fn,
     x,
-    scalar_conditioning,
+    conditioning,
     t,
     dt,
     ps,
@@ -231,7 +219,7 @@ function heun_step(
 )
     ### Euler Maruyama step ###
     # Get drift
-    em_drift, st = drift_term_fn((x, scalar_conditioning, t), ps, st)
+    em_drift, st = drift_term_fn((x, conditioning..., t), ps, st)
     em_x = x .+ dt .* em_drift
 
     # Get gaussian noise
@@ -239,22 +227,16 @@ function heun_step(
 
     # Get diffusion
     em_diffusion = diffusion_term_fn(t)
-    em_diffusion = reshape(
-        em_diffusion,
-        ntuple(i -> i == ndims(x) ? size(em_diffusion)[end] : 1, ndims(x))
-    )
+    em_diffusion = Utils.reshape_scalar(em_diffusion, ndims(x))
     em_x = em_x .+ sqrt(dt) .* em_diffusion .* z
 
     ### Corrector step ###
     # Get drift
-    corrected_drift, st = drift_term_fn((em_x, scalar_conditioning, t .+ dt), ps, st)
+    corrected_drift, st = drift_term_fn((em_x, conditioning..., t .+ dt), ps, st)
 
     # Get diffusion
     corrected_diffusion = diffusion_term_fn(t .+ dt)
-    corrected_diffusion = reshape(
-        corrected_diffusion,
-        ntuple(i -> i == ndims(x) ? size(corrected_diffusion)[end] : 1, ndims(x))
-    )
+    corrected_diffusion = Utils.reshape_scalar(corrected_diffusion, ndims(x))
 
     # Get final drift and diffusion
     final_drift = (em_drift .+ corrected_drift) / 2
