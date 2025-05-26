@@ -39,6 +39,7 @@ export Deterministic, Stochastic
 include("stochastic_interpolants/interpolants.jl")
 include("stochastic_interpolants/generative_model.jl")
 include("stochastic_interpolants/stochastic_interpolant_utils.jl")
+include("stochastic_interpolants/follmer_generative_model.jl")
 
 ##### Flow Matching #####
 include("flow_matching/generative_model.jl")
@@ -54,6 +55,11 @@ export compute_interpolant, compute_interpolant_diff
 
 # Stochastic interpolant generative model
 export StochasticInterpolant
+
+# Follmer stochastic interpolant generative model
+export FollmerStochasticInterpolant
+
+# drift term
 export drift_term
 
 # Flow matching generative model

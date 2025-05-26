@@ -52,7 +52,7 @@ export DEFAULT_LR,
 
     Generic training function for all models.
 """
-function train(model, args...; kwargs...)
+function train(model::Models.GenerativeModel, args...; kwargs...)
     return train(model.trait, model, args...; kwargs...)
 end
 
@@ -70,6 +70,7 @@ export simple_train
 
 ##### Stochastic Interpolant Training #####
 include("train_stochastic_interpolant.jl")
+include("train_follmer_stochastic_interpolant.jl")
 
 ##### Flow Matching Training #####
 include("train_flow_matching.jl")

@@ -183,13 +183,12 @@ end
 
 """
     get_gradients(
-        model,
         batch,
         train_state,
         loss_fn,
     )
 
-    Get gradients from a model, batch, train state, loss function, and random number generator.
+    Get gradients from a batch, train state, and loss function.
 """
 function get_gradients(batch, train_state, loss_fn)
     # Compute gradients
