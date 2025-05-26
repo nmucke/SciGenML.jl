@@ -173,9 +173,8 @@ function UNet(
 
         # Scalar conditioning embedding
         scalar_conditioning_embedding = Lux.Chain(
-            x -> Layers.sinusoidal_embedding(x, scalar_hidden_conditioning_dim),
             Lux.Dense(
-                scalar_hidden_conditioning_dim,
+                scalar_in_conditioning_dim,
                 scalar_hidden_conditioning_dim;
                 use_bias = true
             ),

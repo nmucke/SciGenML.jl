@@ -61,7 +61,7 @@ end
 """
 function sample(
     ::Models.Deterministic,
-    model::Models.FlowMatching,
+    model::Models.ConditionalFlowMatching,
     scalar_conditioning,
     num_steps::Int;
     num_samples::Int = 1000,
@@ -84,14 +84,16 @@ function sample(
         num_samples = size(x_samples)[end]
     end
 
+    drift_term = Models.drift_term(model)
+
     x_samples, velocity_st = TimeIntegrators.ode_integrator(
         stepper,
-        model.velocity,
+        drift_term,
         x_samples,
         scalar_conditioning,
         num_steps,
-        model.ps.velocity,
-        model.st.velocity;
+        model.ps,
+        model.st;
         t_interval = [0.0f0, 1.0f0],
         verbose = verbose,
         device = model.device

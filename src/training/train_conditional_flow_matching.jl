@@ -2,9 +2,10 @@
 """
     _train_step(
         ::Models.Deterministic,
-        model::Models.FlowMatching,
+        model::Models.ConditionalFlowMatching,
         base_samples,
         target_samples,
+        scalar_conditioning_samples,
         train_state,
         rng
     )
@@ -13,9 +14,10 @@
 """
 function _train_step(
     ::Models.Deterministic,
-    model::Models.FlowMatching,
+    model::Models.ConditionalFlowMatching,
     base_samples,
     target_samples,
+    scalar_conditioning_samples,
     train_state,
     rng
 )
@@ -34,9 +36,18 @@ function _train_step(
         model.interpolant_coefs
     )
 
+    # Replace samples with unconditional value
+    replacement_mask =
+        Random.rand(rng, size(scalar_conditioning_samples)...) .<
+        model.replacement_probability
+    scalar_conditioning_samples[replacement_mask] .= model.unconditional_condition
+
     # Compute gradients
     velocity_gs, velocity_loss, velocity_stats, velocity_train_state = get_gradients(
-        ((interpolated_samples, t_samples), interpolated_samples_diff),
+        (
+            (interpolated_samples, scalar_conditioning_samples, t_samples),
+            interpolated_samples_diff
+        ),
         train_state.velocity,
         compute_velocity_loss
     )
@@ -51,7 +62,7 @@ end
 """
     train(
         ::Models.Deterministic,
-        model::Models.FlowMatching,
+        model::Models.ConditionalFlowMatching,
         data,
         config,
         rng = Random.default_rng();
@@ -62,13 +73,13 @@ end
 """
 function train(
     ::Models.Deterministic,
-    model::Models.FlowMatching,
+    model::Models.ConditionalFlowMatching,
     data,
     config,
     rng = Random.default_rng();
     verbose = true
 )
-    println("Training Flow Matching Model")
+    println("Training Conditional Flow Matching Model")
     # Set model to train mode
     model.st = (; velocity = Lux.trainmode(model.st.velocity),)
 

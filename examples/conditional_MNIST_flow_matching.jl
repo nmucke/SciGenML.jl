@@ -15,7 +15,7 @@ import Plots
 import Random
 import MLDatasets
 import NNlib
-NUM_SAMPLES = 5000
+NUM_SAMPLES = 1500
 
 device = Lux.gpu_device();
 cpu_dev = Lux.CPUDevice();
@@ -38,7 +38,7 @@ unet = Architectures.UNet(
 );
 
 ##### Define generative model #####
-FM_model = Models.FlowMatching(unet,);
+FM_model = Models.ConditionalFlowMatching(unet,);
 FM_model = Utils.move_to_device(FM_model, device);
 
 ##### Get training data #####
@@ -49,7 +49,6 @@ y_data = y_data[
     (c_data .== 1) .| (c_data .== 2) .| (c_data .== 3) # .| (targets .== 4) .| (targets .== 5)
 ];
 c_data = c_data[(c_data .== 1) .| (c_data .== 2) .| (c_data .== 3)];
-NUM_SAMPLES = 1500 # size(y_data, 3);
 y_data = y_data[:, :, 1:NUM_SAMPLES];
 c_data = c_data[1:NUM_SAMPLES];
 c_data = reshape(c_data, 1, :);
@@ -71,16 +70,21 @@ FM_model = Training.train(FM_model, data, config; verbose = true);
 
 ##### Sample using model #####
 num_gen_samples = 8
+num_steps = 50
+gen_c_data = 2 .* ones(DEFAULT_TYPE, 1, num_gen_samples);
+labels = ["$(gen_c_data[i])" for i in 1:num_gen_samples];
+FM_model.guidance_scale = 0.75f0;
 fm_samples, st = Sampling.sample(
     Models.Deterministic(),
     FM_model,
-    scalar_conditioning = c_data[:, 1:num_gen_samples],
-    num_gen_samples;
+    gen_c_data,
+    num_steps;
     prior_samples = rand(rng, x_data_dist, (32, 32, 1, 8)) .|> DEFAULT_TYPE,
     num_samples = NUM_SAMPLES,
     verbose = true
 );
 fm_samples = fm_samples |> cpu_dev;
 
-heatmaps = [Plots.heatmap(fm_samples[:, :, 1, i], title = "$(c_data[i])") for i in 1:8];
+heatmaps =
+    [Plots.heatmap(fm_samples[:, :, 1, i], title = labels[i]) for i in 1:num_gen_samples];
 p = Plots.plot(heatmaps...)

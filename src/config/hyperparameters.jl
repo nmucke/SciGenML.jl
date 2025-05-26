@@ -108,6 +108,18 @@ Configurations.@option "flow_matching" struct FlowMatchingHyperparameters
 end
 
 """
+    ConditionalFlowMatchingHyperparameters
+
+    Hyperparameters for the conditional flow matching generative model.
+"""
+Configurations.@option "conditional_flow_matching" struct ConditionalFlowMatchingHyperparameters
+    interpolant_type::String
+    guidance_scale::DEFAULT_TYPE
+    replacement_probability::DEFAULT_TYPE
+    unconditional_condition::DEFAULT_TYPE
+end
+
+"""
     StochasticInterpolantHyperparameters
 
     Hyperparameters for the stochastic interpolant generative model.
@@ -137,6 +149,7 @@ Configurations.@option struct Hyperparameters
     model::Union{
         StochasticInterpolantHyperparameters,
         FlowMatchingHyperparameters,
+        ConditionalFlowMatchingHyperparameters,
         ScoreBasedDiffusionModelHyperparameters
     }
 end
