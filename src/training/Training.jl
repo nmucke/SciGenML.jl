@@ -24,6 +24,7 @@ import ProgressBars
 import Zygote
 import Distributions
 import Statistics
+import DataLoaders
 
 const DEFAULT_LR = DEFAULT_TYPE(1.0f-3)
 const DEFAULT_LAMBDA = DEFAULT_TYPE(1.0f-3)
@@ -59,7 +60,7 @@ end
 
 include("training_utils.jl")
 
-export get_optimizer, prepare_batches
+export get_optimizer, get_dataloader, get_interpolated_samples, get_gradients
 
 ##### Simple Training #####
 
@@ -72,6 +73,7 @@ include("train_stochastic_interpolant.jl")
 
 ##### Flow Matching Training #####
 include("train_flow_matching.jl")
+include("train_conditional_flow_matching.jl")
 
 ##### Diffusion Model Training #####
 include("train_diffusion_model.jl")

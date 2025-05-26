@@ -33,27 +33,41 @@ Configurations.@option "u_net" struct UNetHyperparameters
     in_channels::Int
     out_channels::Int
     hidden_channels::Vector{Int}
-    in_conditioning_dim::Int
     time_embedding_dim::Int
     padding::String
+    in_conditioning_dim::Union{Int, Nothing} = nothing
+    hidden_conditioning_dim::Union{Int, Nothing} = nothing
 
     # CONSTRUCTOR
     function UNetHyperparameters(
         in_channels,
         out_channels,
         hidden_channels,
-        in_conditioning_dim,
         time_embedding_dim,
-        padding
+        padding,
+        scalar_in_conditioning_dim::Union{Int, Nothing} = nothing,
+        scalar_hidden_conditioning_dim::Union{Int, Nothing} = nothing
     )
-        return new(
-            in_channels,
-            out_channels,
-            hidden_channels,
-            in_conditioning_dim,
-            time_embedding_dim,
-            padding
-        )
+        if isnothing(scalar_in_conditioning_dim) &&
+           isnothing(scalar_hidden_conditioning_dim)
+            return new(
+                in_channels,
+                out_channels,
+                hidden_channels,
+                time_embedding_dim,
+                padding
+            )
+        else
+            return new(
+                in_channels,
+                out_channels,
+                hidden_channels,
+                time_embedding_dim,
+                padding,
+                scalar_in_conditioning_dim,
+                scalar_hidden_conditioning_dim
+            )
+        end
     end
 end
 
@@ -65,6 +79,7 @@ end
 Configurations.@option struct TrainingHyperparameters
     batch_size::Int
     num_epochs::Int
+    match_base_and_target::Bool
 end
 
 """
@@ -90,6 +105,18 @@ end
 """
 Configurations.@option "flow_matching" struct FlowMatchingHyperparameters
     interpolant_type::String
+end
+
+"""
+    ConditionalFlowMatchingHyperparameters
+
+    Hyperparameters for the conditional flow matching generative model.
+"""
+Configurations.@option "conditional_flow_matching" struct ConditionalFlowMatchingHyperparameters
+    interpolant_type::String
+    guidance_scale::DEFAULT_TYPE
+    replacement_probability::DEFAULT_TYPE
+    unconditional_condition::DEFAULT_TYPE
 end
 
 """
@@ -122,6 +149,7 @@ Configurations.@option struct Hyperparameters
     model::Union{
         StochasticInterpolantHyperparameters,
         FlowMatchingHyperparameters,
+        ConditionalFlowMatchingHyperparameters,
         ScoreBasedDiffusionModelHyperparameters
     }
 end

@@ -42,7 +42,7 @@ include("stochastic_interpolants/stochastic_interpolant_utils.jl")
 
 ##### Flow Matching #####
 include("flow_matching/generative_model.jl")
-
+include("flow_matching/conditional_generative_model.jl")
 ### Interpolants
 export DeterministicInterpolantCoefs, StochasticInterpolantCoefs
 
@@ -55,6 +55,12 @@ export compute_interpolant, compute_interpolant_diff
 # Stochastic interpolant generative model
 export StochasticInterpolant
 export drift_term
+
+# Flow matching generative model
+export FlowMatching
+
+# Conditional flow matching generative model
+export ConditionalFlowMatching
 
 # Score-based diffusion model
 include("denoising_diffusion_model/generative_model.jl")

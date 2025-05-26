@@ -5,6 +5,56 @@
         model::Models.ScoreBasedDiffusionModel,
         base_samples,
         target_samples,
+        scalar_conditioning,
+        train_state,
+        rng
+    )
+
+    Train a score-based diffusion generative model for one step via flow matching.
+"""
+function _train_step(
+    model::Models.ScoreBasedDiffusionModel,
+    base_samples,
+    target_samples,
+    scalar_conditioning,
+    train_state,
+    rng
+)
+
+    ### Compute interpolated samples
+    num_samples = size(base_samples)[end]
+
+    # Generate random times
+    t_samples = Random.rand!(rng, similar(base_samples, (1, num_samples)))
+
+    # Compute interpolated samples
+    interpolated_samples, interpolated_samples_diff = get_interpolated_samples(
+        base_samples,
+        target_samples,
+        t_samples,
+        model.interpolant_coefs
+    )
+
+    # Compute gradients
+    velocity_gs, velocity_loss, velocity_stats, velocity_train_state = get_gradients(
+        ((interpolated_samples, scalar_conditioning, t_samples), interpolated_samples_diff),
+        train_state.velocity,
+        compute_velocity_loss
+    )
+
+    # Optimization
+    train_state =
+        (; velocity = Lux.Training.apply_gradients(velocity_train_state, velocity_gs),)
+
+    return velocity_loss, train_state, velocity_stats
+end
+
+"""
+    _train_step(
+        ::Models.Deterministic,
+        model::Models.ScoreBasedDiffusionModel,
+        base_samples,
+        target_samples,
         train_state,
         rng
     )
@@ -26,14 +76,7 @@ function _train_step(
     t_samples = Random.rand!(rng, similar(base_samples, (1, num_samples)))
 
     # Compute interpolated samples
-    interpolated_samples = Models.compute_interpolant(
-        base_samples,
-        target_samples,
-        t_samples,
-        model.interpolant_coefs
-    )
-
-    interpolated_samples_diff = Models.compute_interpolant_diff(
+    interpolated_samples, interpolated_samples_diff = get_interpolated_samples(
         base_samples,
         target_samples,
         t_samples,
@@ -41,13 +84,11 @@ function _train_step(
     )
 
     # Compute gradients
-    velocity_gs, velocity_loss, velocity_stats, velocity_train_state =
-        Lux.Training.compute_gradients(
-            Lux.AutoZygote(),
-            compute_velocity_loss,
-            ((interpolated_samples, t_samples), interpolated_samples_diff),
-            train_state.velocity
-        )
+    velocity_gs, velocity_loss, velocity_stats, velocity_train_state = get_gradients(
+        model,
+        ((interpolated_samples, t_samples), interpolated_samples_diff),
+        train_state.velocity
+    )
 
     # Optimization
     train_state =
@@ -103,21 +144,24 @@ function train(
     for i in iter
         velocity_loss = 0.0
 
-        # Prepare batches
-        x_batches, y_batches = prepare_batches(data, config.training.batch_size, rng)
+        # Prepare dataloader
+        dataloader = get_dataloader(
+            data,
+            config.training.batch_size,
+            config.training.match_base_and_target
+        )
 
         # Loop over batches
-        for (x_batch, y_batch) in zip(x_batches, y_batches)
-            x_batch = x_batch |> model.device
-            y_batch = y_batch |> model.device
+        for batch in dataloader
+            batch = batch .|> model.device
 
             # Training step
             velocity_loss, train_state, velocity_stats =
-                _train_step(model, x_batch, y_batch, train_state, rng)
+                _train_step(model, batch..., train_state, rng)
             velocity_loss += velocity_loss
         end
 
-        velocity_loss = velocity_loss / length(x_batches)
+        velocity_loss = velocity_loss / length(dataloader)
 
         if verbose && (i % 10 == 0)
             println("Epoch $i: Velocity loss = $velocity_loss")
