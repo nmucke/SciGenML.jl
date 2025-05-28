@@ -219,6 +219,9 @@ function sample(
 )
     model.st = (; velocity = Lux.testmode(model.st.velocity))
 
+    if !(typeof(conditioning) <: Tuple)
+        conditioning = (conditioning,)
+    end
     conditioning = conditioning .|> model.device
 
     if isnothing(prior_samples)
@@ -267,7 +270,7 @@ function sample(
         device = model.device
     )
 
-    st = (; velocity = st)
+    st = (; velocity = st.velocity)
 
     return x_samples, st
 end

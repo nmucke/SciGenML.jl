@@ -20,6 +20,7 @@ Modules = [
     SciGenML.Sampling,
     SciGenML.Training,
     SciGenML.Config,
-    SciGenML.Utils
+    SciGenML.Utils,
+    SciGenML.Plotting
 ]
 ```

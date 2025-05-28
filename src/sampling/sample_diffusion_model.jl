@@ -26,7 +26,6 @@ function sample(
     verbose::Bool = true,
     stepper = TimeIntegrators.heun_step
 )
-    println("Sampling from denoising diffusion model")
     model.st = (; velocity = Lux.testmode(model.st.velocity))
 
     if isnothing(diffusion_fn)
@@ -82,7 +81,7 @@ end
 function sample(
     ::Models.Stochastic,
     model::Models.ScoreBasedDiffusionModel,
-    scalar_conditioning,
+    conditioning,
     num_steps::Int;
     num_samples::Int = 1000,
     prior_samples = nothing,
@@ -91,10 +90,12 @@ function sample(
     verbose::Bool = true,
     stepper = TimeIntegrators.heun_step
 )
-    println("Sampling from denoising diffusion model")
     model.st = (; velocity = Lux.testmode(model.st.velocity))
 
-    scalar_conditioning = scalar_conditioning |> model.device
+    if !(typeof(conditioning) <: Tuple)
+        conditioning = (conditioning,)
+    end
+    conditioning = conditioning .|> model.device
 
     if isnothing(diffusion_fn)
         diffusion_fn = t -> model.interpolant_coefs.alpha(t)
@@ -121,7 +122,7 @@ function sample(
         drift_term_fn,
         diffusion_fn,
         x_samples,
-        scalar_conditioning,
+        conditioning,
         num_steps,
         model.ps,
         model.st;

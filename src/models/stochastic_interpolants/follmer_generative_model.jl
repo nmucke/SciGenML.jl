@@ -47,11 +47,7 @@ mutable struct FollmerStochasticInterpolant <: Models.ConditionalGenerativeModel
     function FollmerStochasticInterpolant(config::Config.Hyperparameters,)
 
         # Define velocity model
-        velocity_model = Architectures.DenseNeuralNetwork(
-            config.architecture.in_features,
-            config.architecture.out_features,
-            config.architecture.hidden_features;
-        );
+        velocity_model = Architectures.get_architecture(config.architecture);
 
         return FollmerStochasticInterpolant(config.model.interpolant_type, velocity_model)
     end

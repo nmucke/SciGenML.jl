@@ -39,4 +39,6 @@ include("sampling/Sampling.jl")
 
 include("training/Training.jl")
 
+include("plotting/Plotting.jl")
+
 end

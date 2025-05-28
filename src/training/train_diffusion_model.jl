@@ -5,7 +5,7 @@
         model::Models.ScoreBasedDiffusionModel,
         base_samples,
         target_samples,
-        scalar_conditioning,
+        conditioning,
         train_state,
         rng
     )
@@ -16,7 +16,7 @@ function _train_step(
     model::Models.ScoreBasedDiffusionModel,
     base_samples,
     target_samples,
-    scalar_conditioning,
+    conditioning,
     train_state,
     rng
 )
@@ -37,7 +37,7 @@ function _train_step(
 
     # Compute gradients
     velocity_gs, velocity_loss, velocity_stats, velocity_train_state = get_gradients(
-        ((interpolated_samples, scalar_conditioning, t_samples), interpolated_samples_diff),
+        ((interpolated_samples, conditioning, t_samples), interpolated_samples_diff),
         train_state.velocity,
         compute_velocity_loss
     )

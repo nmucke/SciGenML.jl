@@ -9,7 +9,7 @@
         rng
     )
 
-    Train a stochastic interpolant generative model for one step.
+    Train a flow matching generative model for one step.
 """
 function _train_step(
     ::Models.Deterministic,
@@ -37,6 +37,57 @@ function _train_step(
     # Compute gradients
     velocity_gs, velocity_loss, velocity_stats, velocity_train_state = get_gradients(
         ((interpolated_samples, t_samples), interpolated_samples_diff),
+        train_state.velocity,
+        compute_velocity_loss
+    )
+
+    # Optimization
+    train_state =
+        (; velocity = Lux.Training.apply_gradients(velocity_train_state, velocity_gs),)
+
+    return velocity_loss, train_state, velocity_stats
+end
+
+"""
+    _train_step(
+        ::Models.Deterministic,
+        model::Models.FlowMatching,
+        base_samples,
+        target_samples,
+        field_conditioning,
+        train_state,
+        rng
+    )
+
+    Train a flow matching generative model for one step.
+"""
+function _train_step(
+    ::Models.Deterministic,
+    model::Models.FlowMatching,
+    base_samples,
+    target_samples,
+    field_conditioning,
+    train_state,
+    rng
+)
+
+    ### Compute interpolated samples
+    num_samples = size(base_samples)[end]
+
+    # Generate random times
+    t_samples = Random.rand!(rng, similar(base_samples, (1, num_samples)))
+
+    # Compute interpolated samples
+    interpolated_samples, interpolated_samples_diff = get_interpolated_samples(
+        base_samples,
+        target_samples,
+        t_samples,
+        model.interpolant_coefs
+    )
+
+    # Compute gradients
+    velocity_gs, velocity_loss, velocity_stats, velocity_train_state = get_gradients(
+        ((interpolated_samples, field_conditioning, t_samples), interpolated_samples_diff),
         train_state.velocity,
         compute_velocity_loss
     )

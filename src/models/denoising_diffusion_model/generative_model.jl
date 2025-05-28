@@ -35,14 +35,8 @@ mutable struct ScoreBasedDiffusionModel <: Models.GenerativeModel
     function ScoreBasedDiffusionModel(config::Config.Hyperparameters,)
 
         # Define score model
-        velocity_model = Architectures.UNet(
-            config.architecture.in_channels,
-            config.architecture.out_channels,
-            config.architecture.hidden_channels,
-            config.architecture.in_conditioning_dim,
-            config.architecture.time_embedding_dim,
-            config.architecture.padding;
-        );
+        velocity_model = Architectures.get_architecture(config.architecture);
+
         return ScoreBasedDiffusionModel(velocity_model)
     end
 end
@@ -65,7 +59,7 @@ function drift_term(::Models.Stochastic, model::ScoreBasedDiffusionModel, diffus
         velocity, _velocity_st = model.velocity(x, ps.velocity, st.velocity)
         st = (; velocity = _velocity_st)
 
-        t = x[2]
+        t = x[end]
         diffusion = diffusion_fn(t)
         diffusion = Utils.reshape_scalar(diffusion, ndims(x[1]))
 
