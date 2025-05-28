@@ -89,21 +89,14 @@ mutable struct StochasticInterpolant <: GenerativeModel
     )
 
         # Define velocity model
-        velocity_model = Architectures.DenseNeuralNetwork(
-            config.architecture.in_features,
-            config.architecture.out_features,
-            config.architecture.hidden_features;
-        );
+        velocity_model = Architectures.get_architecture(config.architecture);
+
         if trait == Models.Deterministic()
             return StochasticInterpolant(config.model.interpolant_type, velocity_model)
 
         elseif trait == Models.Stochastic()
             # Define score model
-            score_model = Architectures.DenseNeuralNetwork(
-                config.architecture.in_features,
-                config.architecture.out_features,
-                config.architecture.hidden_features;
-            );
+            score_model = Architectures.get_architecture(config.architecture);
         end
 
         return StochasticInterpolant(

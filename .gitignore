@@ -15,5 +15,6 @@
 *.yaml
 *.yml
 *.toml
+*.mp4
 
 /data/

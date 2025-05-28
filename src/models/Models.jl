@@ -73,4 +73,20 @@ include("denoising_diffusion_model/generative_model.jl")
 
 export ScoreBasedDiffusionModel
 
+function get_model(config)
+    if config.model isa Config.StochasticInterpolantHyperparameters
+        return StochasticInterpolant(config)
+    elseif config.model isa Config.FollmerStochasticInterpolantHyperparameters
+        return FollmerStochasticInterpolant(config)
+    elseif config.model isa Config.FlowMatchingHyperparameters
+        return FlowMatching(config)
+    elseif config.model isa Config.ConditionalFlowMatchingHyperparameters
+        return ConditionalFlowMatching(config)
+    elseif config.model isa Config.ScoreBasedDiffusionModelHyperparameters
+        return ScoreBasedDiffusionModel(config)
+    else
+        throw(ArgumentError("Invalid model configuration"))
+    end
+end
+
 end

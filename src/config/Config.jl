@@ -15,12 +15,25 @@ import SciGenML.DEFAULT_TYPE as DEFAULT_TYPE
 
 import Configurations
 
-include("hyperparameters.jl")
-
-export Hyperparameters
+include("architectures.jl")
 export DenseNeuralNetworkHyperparameters
+export UNetHyperparameters
+
+include("training.jl")
 export TrainingHyperparameters
 export OptimizerHyperparameters
+
+include("models.jl")
 export StochasticInterpolantHyperparameters
+export FollmerStochasticInterpolantHyperparameters
+export FlowMatchingHyperparameters
+export ConditionalFlowMatchingHyperparameters
+export ScoreBasedDiffusionModelHyperparameters
+
+include("data.jl")
+export KolmogorovDataHyperparameters
+
+include("hyperparameters.jl")
+export Hyperparameters
 
 end

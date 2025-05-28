@@ -444,3 +444,53 @@ function UNet(
 
     return model
 end
+
+"""
+    UNet(config::Config.UNetHyperparameters)
+
+    A UNet model.
+
+    # Arguments
+    - `config::Config.UNetHyperparameters`: The configuration for the UNet model.
+"""
+function UNet(config::Config.UNetHyperparameters)
+    has_scalar_conditioning =
+        !isnothing(config.scalar_in_conditioning_dim) &&
+        !isnothing(config.scalar_hidden_conditioning_dim)
+    has_field_conditioning =
+        !isnothing(config.field_in_conditioning_dim) &&
+        !isnothing(config.field_hidden_conditioning_dim)
+
+    if !has_scalar_conditioning && !has_field_conditioning
+        return UNet(
+            config.in_channels,
+            config.out_channels,
+            config.hidden_channels,
+            config.time_embedding_dim,
+            config.padding
+        )
+    elseif has_scalar_conditioning && !has_field_conditioning
+        return UNet(
+            config.in_channels,
+            config.out_channels,
+            config.hidden_channels,
+            config.time_embedding_dim,
+            config.padding,
+            config.scalar_in_conditioning_dim,
+            config.scalar_hidden_conditioning_dim
+        )
+    elseif !has_scalar_conditioning && has_field_conditioning
+        return UNet(
+            config.in_channels,
+            config.out_channels,
+            config.hidden_channels,
+            config.time_embedding_dim,
+            config.padding,
+            config.field_in_conditioning_dim,
+            config.field_hidden_conditioning_dim,
+            config.field_conditioning_combination
+        )
+    else
+        throw(ArgumentError("Invalid combination of conditioning dimensions."))
+    end
+end

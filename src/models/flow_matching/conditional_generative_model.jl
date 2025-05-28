@@ -71,11 +71,8 @@ mutable struct ConditionalFlowMatching <: Models.ConditionalGenerativeModel
     function ConditionalFlowMatching(config::Config.Hyperparameters,)
 
         # Define velocity model
-        velocity_model = Architectures.DenseNeuralNetwork(
-            config.architecture.in_features,
-            config.architecture.out_features,
-            config.architecture.hidden_features;
-        );
+        velocity_model = Architectures.get_architecture(config.architecture);
+
         return ConditionalFlowMatching(
             config.model.interpolant_type,
             velocity_model,
