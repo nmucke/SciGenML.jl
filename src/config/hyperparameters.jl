@@ -27,5 +27,9 @@ Configurations.@option struct Hyperparameters
         ConditionalFlowMatchingHyperparameters,
         ScoreBasedDiffusionModelHyperparameters
     }
-    data::Union{KolmogorovDataHyperparameters, PlaceholderDataHyperparameters}
+    data::Union{
+        KolmogorovDataHyperparameters,
+        SuperResKolmogorovDataHyperparameters,
+        PlaceholderDataHyperparameters
+    }
 end
