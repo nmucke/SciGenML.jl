@@ -61,7 +61,8 @@ end
         data,
         config,
         rng = Random.default_rng();
-        verbose = true
+        verbose = true,
+        checkpoint = nothing
     )
 
     Train a Follmer stochastic interpolant generative model.
@@ -72,7 +73,8 @@ function train(
     data,
     config,
     rng = Random.default_rng();
-    verbose = true
+    verbose = true,
+    checkpoint = nothing
 )
     println("Training Follmer Stochastic Interpolant")
 
@@ -92,32 +94,42 @@ function train(
 
     iter = Utils.get_iter(config.training.num_epochs, verbose)
 
+    train_data, val_data = split_data(data, 0.99, rng)
+
+    best_val_loss = Inf
+
     # Training loop
     for i in iter
-        velocity_loss = 0.0
+        train_velocity_loss = 0.0
+        val_velocity_loss = 0.0
 
         # Prepare dataloader
-        dataloader = get_dataloader(
-            data,
+        train_dataloader = get_dataloader(
+            train_data,
             config.training.batch_size,
             config.training.match_base_and_target
         )
 
         # Loop over batches
-        for batch in dataloader
+        for batch in train_dataloader
             batch = batch .|> model.device
 
             # Training step
-            velocity_loss, train_state, velocity_stats =
+            train_velocity_loss, train_state, velocity_stats =
                 _train_step(Models.Stochastic(), model, batch..., train_state, rng)
-            velocity_loss += velocity_loss
+            train_velocity_loss += train_velocity_loss
         end
 
-        velocity_loss = velocity_loss / length(dataloader)
+        train_velocity_loss = train_velocity_loss / length(train_dataloader)
 
         if verbose && (i % 10 == 0)
-            println("Epoch $i: Velocity loss = $velocity_loss")
+            println("Epoch $i: Velocity loss = $train_velocity_loss")
             println(" ")
+        end
+
+        # Save checkpoint
+        if checkpoint !== nothing
+            save_train_state(train_state, checkpoint)
         end
     end
 

@@ -77,6 +77,7 @@ function train(
     data,
     config,
     rng = Random.default_rng();
+    checkpoint = nothing,
     verbose = true
 )
     println("Training Conditional Flow Matching Model")
@@ -128,6 +129,11 @@ function train(
         if verbose && (i % 10 == 0)
             println("Epoch $i: Velocity loss = $velocity_loss")
             println(" ")
+        end
+
+        # Save checkpoint
+        if checkpoint !== nothing
+            Checkpoint.save_train_state(train_state, checkpoint)
         end
     end
 

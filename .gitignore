@@ -18,6 +18,7 @@
 *.mp4
 
 /data/
+/checkpoints/
 
 /python_libs/
 /python_libs/.venv/

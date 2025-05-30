@@ -24,11 +24,11 @@ include("super_res_kolmogorov.jl")
 export load_kolmogorov_data
 export load_super_res_kolmogorov_data
 
-function load_data(config)
+function load_data(config; kwargs...)
     if config.data isa Config.KolmogorovDataHyperparameters
-        return load_kolmogorov_data(config.data)
+        return load_kolmogorov_data(config.data; kwargs...)
     elseif config.data isa Config.SuperResKolmogorovDataHyperparameters
-        return load_super_res_kolmogorov_data(config.data)
+        return load_super_res_kolmogorov_data(config.data; kwargs...)
     end
 end
 

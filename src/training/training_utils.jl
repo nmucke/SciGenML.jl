@@ -40,7 +40,8 @@ end
 function get_dataloader(
     data::NamedTuple,
     batch_size::Int,
-    match_base_and_target::Bool = false
+    match_base_and_target::Bool = false,
+    kwargs...
 )
     return get_dataloader(values(data)..., batch_size, match_base_and_target)
 end
@@ -106,6 +107,40 @@ function get_dataloader(
         DataLoaders.shuffleobs((base, target, scalar_conditioning)),
         batch_size
     )
+end
+
+"""
+    split_data(data, split_ratio, rng = Random.default_rng())
+
+    Split data into train and validation sets.
+"""
+function split_data(data, split_ratio, rng = Random.default_rng())
+    n_samples = size(data.target, ndims(data.target))
+
+    shuffled_indices = Random.randperm(rng, n_samples)
+
+    train_indices = shuffled_indices[1:floor(Int, n_samples * split_ratio)]
+    val_indices = shuffled_indices[(floor(Int, n_samples * split_ratio) + 1):end]
+
+    train_data = Dict()
+    val_data = Dict()
+
+    for key in keys(data)
+        samples = getproperty(data, key)
+
+        if samples isa AbstractArray{<:Number}
+            train_data[key] = Array(selectdim(samples, ndims(samples), train_indices))
+            val_data[key] = Array(selectdim(samples, ndims(samples), val_indices))
+        else
+            train_data[key] = samples
+            val_data[key] = samples
+        end
+    end
+
+    train_data = NamedTuple(train_data)
+    val_data = NamedTuple(val_data)
+
+    return train_data, val_data
 end
 
 """
@@ -196,4 +231,61 @@ function get_gradients(batch, train_state, loss_fn)
         Lux.Training.compute_gradients(Lux.AutoZygote(), loss_fn, batch, train_state)
 
     return gs, loss, stats, train_state
+end
+
+"""
+    Checkpoint
+
+A checkpoint for a model and other data.
+"""
+struct Checkpoint
+    checkpoint_path::String
+    config::Any
+
+    # Constructor
+    function Checkpoint(checkpoint_path::String, config::Any = nothing)
+
+        # Check if path exists, if not create it
+        if !isdir(checkpoint_path) && !isnothing(config)
+            println("Checkpoint path does not exist, creating it...")
+            mkpath(checkpoint_path)
+
+            # Save config
+            config_path = joinpath(checkpoint_path, "config.toml")
+            Configurations.to_toml(config_path, config)
+        else
+            println("Checkpoint path exists, loading it...")
+
+            # Load config
+            config_path = joinpath(checkpoint_path, "config.toml")
+            config = Configurations.from_toml(Config.Hyperparameters, config_path)
+        end
+
+        return new(checkpoint_path, config)
+    end
+end
+
+"""
+    save_train_state(
+        train_state::Any, 
+        checkpoint::Checkpoint
+    )
+
+    Save a train state to a checkpoint.
+"""
+function save_train_state(train_state::Any, checkpoint::Checkpoint)
+    train_state_path = joinpath(checkpoint.checkpoint_path, "train_state.bson")
+    BSON.bson(train_state_path, Dict("train_state" => train_state))
+end
+
+"""
+    load_train_state(
+        checkpoint::Checkpoint
+    )
+
+    Load a train state from a checkpoint.
+"""
+function load_train_state(checkpoint::Checkpoint)
+    train_state_path = joinpath(checkpoint.checkpoint_path, "train_state.bson")
+    return BSON.load(train_state_path)["train_state"]
 end
