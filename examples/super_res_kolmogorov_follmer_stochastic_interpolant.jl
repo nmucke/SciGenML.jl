@@ -75,9 +75,8 @@ SI_model = Training.train(SI_model, data, config; verbose = true, checkpoint = c
 
 data = Data.load_data(config; with_low_res = true);
 
-test_ids = [1, 100, 250, 400];
-num_steps = 100;
-num_physical_steps = 50;
+test_ids = [10, 100, 250, 400];
+num_steps = 250;
 
 prior_samples = data.base[:, :, :, test_ids];
 pred_high_res, _st = Sampling.sample(
@@ -85,7 +84,8 @@ pred_high_res, _st = Sampling.sample(
     prior_samples,
     num_steps;
     prior_samples = prior_samples,
-    verbose = true
+    verbose = true,
+    stepper = TimeIntegrators.heun_step
 );
 
 pred_high_res = pred_high_res |> cpu_dev;
@@ -93,7 +93,7 @@ true_high_res = data.target[:, :, :, test_ids] |> cpu_dev;
 low_res = data.low_res[:, :, :, test_ids] |> cpu_dev;
 
 low_res = sqrt.(low_res[:, :, 1, :] .^ 2 + low_res[:, :, 2, :] .^ 2) |> cpu_dev;
-simple_upscaling =
+linear_upscaling =
     sqrt.(prior_samples[:, :, 1, :] .^ 2 + prior_samples[:, :, 2, :] .^ 2) |> cpu_dev;
 pred_high_res = sqrt.(pred_high_res[:, :, 1, :] .^ 2 + pred_high_res[:, :, 2, :] .^ 2);
 true_high_res = sqrt.(true_high_res[:, :, 1, :] .^ 2 + true_high_res[:, :, 2, :] .^ 2);
@@ -106,14 +106,14 @@ Plots.plot(
     Plots.heatmap(low_res[:, :, 2], title = "Low Res 2", cbar = false),
     Plots.heatmap(low_res[:, :, 3], title = "Low Res 3", cbar = false),
     Plots.heatmap(low_res[:, :, 4], title = "Low Res 4", cbar = false),
-    Plots.heatmap(simple_upscaling[:, :, 1], title = "Simple upscaling 1", cbar = false),
-    Plots.heatmap(simple_upscaling[:, :, 2], title = "Simple upscaling 2", cbar = false),
-    Plots.heatmap(simple_upscaling[:, :, 3], title = "Simple upscaling 3", cbar = false),
-    Plots.heatmap(simple_upscaling[:, :, 4], title = "Simple upscaling 4", cbar = false),
-    Plots.heatmap(pred_high_res[:, :, 1], title = "Pred High Res 1", cbar = false),
-    Plots.heatmap(pred_high_res[:, :, 2], title = "Pred High Res 2", cbar = false),
-    Plots.heatmap(pred_high_res[:, :, 3], title = "Pred High Res 3", cbar = false),
-    Plots.heatmap(pred_high_res[:, :, 4], title = "Pred High Res 4", cbar = false),
+    Plots.heatmap(linear_upscaling[:, :, 1], title = "Linear upscaling 1", cbar = false),
+    Plots.heatmap(linear_upscaling[:, :, 2], title = "Linear upscaling 2", cbar = false),
+    Plots.heatmap(linear_upscaling[:, :, 3], title = "Linear upscaling 3", cbar = false),
+    Plots.heatmap(linear_upscaling[:, :, 4], title = "Linear upscaling 4", cbar = false),
+    Plots.heatmap(pred_high_res[:, :, 1], title = "SI High Res 1", cbar = false),
+    Plots.heatmap(pred_high_res[:, :, 2], title = "SI High Res 2", cbar = false),
+    Plots.heatmap(pred_high_res[:, :, 3], title = "SI High Res 3", cbar = false),
+    Plots.heatmap(pred_high_res[:, :, 4], title = "SI High Res 4", cbar = false),
     Plots.heatmap(true_high_res[:, :, 1], title = "True High Res 1", cbar = false),
     Plots.heatmap(true_high_res[:, :, 2], title = "True High Res 2", cbar = false),
     Plots.heatmap(true_high_res[:, :, 3], title = "True High Res 3", cbar = false),
