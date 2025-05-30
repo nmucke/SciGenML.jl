@@ -19,12 +19,16 @@ import Zarr
 
 ### Kolmogorov data loading ###
 include("kolmogorov.jl")
+include("super_res_kolmogorov.jl")
 
 export load_kolmogorov_data
+export load_super_res_kolmogorov_data
 
 function load_data(config)
     if config.data isa Config.KolmogorovDataHyperparameters
         return load_kolmogorov_data(config.data)
+    elseif config.data isa Config.SuperResKolmogorovDataHyperparameters
+        return load_super_res_kolmogorov_data(config.data)
     end
 end
 

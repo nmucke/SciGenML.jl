@@ -32,6 +32,7 @@ export ScoreBasedDiffusionModelHyperparameters
 
 include("data.jl")
 export KolmogorovDataHyperparameters
+export SuperResKolmogorovDataHyperparameters
 
 include("hyperparameters.jl")
 export Hyperparameters
