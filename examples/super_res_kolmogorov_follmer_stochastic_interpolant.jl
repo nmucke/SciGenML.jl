@@ -11,16 +11,16 @@ import Lux
 using LuxCUDA
 import Configurations
 import Random
+import JLD2
 
 device = Lux.gpu_device();
 cpu_dev = Lux.CPUDevice();
 rng = Lux.Random.default_rng();
 
 # import ImageTransformations as IT
-# import JLD2
 # import Plots 
 
-# reduction_factor = 4
+# reduction_factor = 8
 
 # function create_super_res_kolmogorov_data(reduction_factor::Int)
 #     for i in 1:50
@@ -32,7 +32,7 @@ rng = Lux.Random.default_rng();
 #         for time in 1:3200
 #             for channel in 1:2
 #                 img_small = IT.imresize(high_res_data[:, :, channel, time], ratio=1/reduction_factor)
-#                 img_medium = IT.imresize(img_ssmall, size(img_small).*reduction_factor)
+#                 img_medium = IT.imresize(img_small, size(img_small).*reduction_factor)
 #                 low_res_data[:, :, channel, time] = img_small
 #                 upscaled_data[:, :, channel, time] = img_medium
 #             end
@@ -58,19 +58,25 @@ config = Configurations.from_toml(
 );
 
 ##### Load data #####
-data = Data.load_data(config);
+data = Data.load_data(config; with_low_res = false);
 
 ##### Define generative model #####
 SI_model = Models.get_model(config);
 SI_model = Utils.move_to_device(SI_model, device);
 
+##### Checkpointing #####
+checkpoint_path = "checkpoints/super_res_kolmogorov_follmer_stochastic_interpolant";
+checkpoint = Training.Checkpoint(checkpoint_path, config);
+
 ##### Train model #####
-SI_model = Training.train(SI_model, data, config; verbose = true);
+SI_model = Training.train(SI_model, data, config; verbose = true, checkpoint = checkpoint);
 
 ##### Sample using model #####
-test_ids = [100, 200, 300, 400];
-num_steps = 100;
-num_physical_steps = 50;
+
+data = Data.load_data(config; with_low_res = true);
+
+test_ids = [10, 100, 250, 400];
+num_steps = 250;
 
 prior_samples = data.base[:, :, :, test_ids];
 pred_high_res, _st = Sampling.sample(
@@ -78,31 +84,39 @@ pred_high_res, _st = Sampling.sample(
     prior_samples,
     num_steps;
     prior_samples = prior_samples,
-    verbose = true
+    verbose = true,
+    stepper = TimeIntegrators.heun_step
 );
 
 pred_high_res = pred_high_res |> cpu_dev;
 true_high_res = data.target[:, :, :, test_ids] |> cpu_dev;
+low_res = data.low_res[:, :, :, test_ids] |> cpu_dev;
 
-low_res = sqrt.(prior_samples[:, :, 1, :] .^ 2 + prior_samples[:, :, 2, :] .^ 2) |> cpu_dev;
+low_res = sqrt.(low_res[:, :, 1, :] .^ 2 + low_res[:, :, 2, :] .^ 2) |> cpu_dev;
+linear_upscaling =
+    sqrt.(prior_samples[:, :, 1, :] .^ 2 + prior_samples[:, :, 2, :] .^ 2) |> cpu_dev;
 pred_high_res = sqrt.(pred_high_res[:, :, 1, :] .^ 2 + pred_high_res[:, :, 2, :] .^ 2);
-true_high_res = sqrt.(data.target[:, :, 1, :] .^ 2 + data.target[:, :, 2, :] .^ 2);
+true_high_res = sqrt.(true_high_res[:, :, 1, :] .^ 2 + true_high_res[:, :, 2, :] .^ 2);
 
 import Plots
 
-Plots.default(size = (1200, 600))
+Plots.default(size = (1200, 1200))
 Plots.plot(
-    Plots.heatmap(low_res[:, :, 1], title = "Low Res 1"),
-    Plots.heatmap(low_res[:, :, 2], title = "Low Res 2"),
-    Plots.heatmap(low_res[:, :, 3], title = "Low Res 3"),
-    Plots.heatmap(low_res[:, :, 4], title = "Low Res 4"),
-    Plots.heatmap(pred_high_res[:, :, 1], title = "Predicted High Res 1"),
-    Plots.heatmap(pred_high_res[:, :, 2], title = "Predicted High Res 2"),
-    Plots.heatmap(pred_high_res[:, :, 3], title = "Predicted High Res 3"),
-    Plots.heatmap(pred_high_res[:, :, 4], title = "Predicted High Res 4"),
-    Plots.heatmap(true_high_res[:, :, 1], title = "True High Res 1"),
-    Plots.heatmap(true_high_res[:, :, 2], title = "True High Res 2"),
-    Plots.heatmap(true_high_res[:, :, 3], title = "True High Res 3"),
-    Plots.heatmap(true_high_res[:, :, 4], title = "True High Res 4"),
-    layout = (3, 4)
+    Plots.heatmap(low_res[:, :, 1], title = "Low Res 1", cbar = false),
+    Plots.heatmap(low_res[:, :, 2], title = "Low Res 2", cbar = false),
+    Plots.heatmap(low_res[:, :, 3], title = "Low Res 3", cbar = false),
+    Plots.heatmap(low_res[:, :, 4], title = "Low Res 4", cbar = false),
+    Plots.heatmap(linear_upscaling[:, :, 1], title = "Linear upscaling 1", cbar = false),
+    Plots.heatmap(linear_upscaling[:, :, 2], title = "Linear upscaling 2", cbar = false),
+    Plots.heatmap(linear_upscaling[:, :, 3], title = "Linear upscaling 3", cbar = false),
+    Plots.heatmap(linear_upscaling[:, :, 4], title = "Linear upscaling 4", cbar = false),
+    Plots.heatmap(pred_high_res[:, :, 1], title = "SI High Res 1", cbar = false),
+    Plots.heatmap(pred_high_res[:, :, 2], title = "SI High Res 2", cbar = false),
+    Plots.heatmap(pred_high_res[:, :, 3], title = "SI High Res 3", cbar = false),
+    Plots.heatmap(pred_high_res[:, :, 4], title = "SI High Res 4", cbar = false),
+    Plots.heatmap(true_high_res[:, :, 1], title = "True High Res 1", cbar = false),
+    Plots.heatmap(true_high_res[:, :, 2], title = "True High Res 2", cbar = false),
+    Plots.heatmap(true_high_res[:, :, 3], title = "True High Res 3", cbar = false),
+    Plots.heatmap(true_high_res[:, :, 4], title = "True High Res 4", cbar = false),
+    layout = (4, 4)
 )

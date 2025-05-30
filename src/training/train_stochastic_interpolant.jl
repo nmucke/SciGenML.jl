@@ -219,7 +219,8 @@ function train(
     data,
     config,
     rng = Random.default_rng();
-    verbose = true
+    verbose = true,
+    checkpoint = nothing
 )
     println("Training Stochastic Interpolant")
 
@@ -291,6 +292,11 @@ function train(
             println("Epoch $i: Velocity loss = $velocity_loss, Score loss = $score_loss")
             println(" ")
         end
+
+        # Save checkpoint
+        if checkpoint !== nothing
+            Checkpoint.save_train_state(train_state, checkpoint)
+        end
     end
 
     model.ps =
@@ -307,7 +313,8 @@ end
         data,
         config,
         rng = Random.default_rng();
-        verbose = true
+        verbose = true,
+        checkpoint = nothing
     )
 
     Train a stochastic interpolant generative model.
@@ -318,7 +325,8 @@ function train(
     data,
     config,
     rng = Random.default_rng();
-    verbose = true
+    verbose = true,
+    checkpoint = nothing
 )
     println("Training Stochastic Interpolant")
 
@@ -370,6 +378,11 @@ function train(
         if verbose && (i % 10 == 0)
             println("Epoch $i: Velocity loss = $velocity_loss")
             println(" ")
+        end
+
+        # Save checkpoint
+        if checkpoint !== nothing
+            Checkpoint.save_train_state(train_state, checkpoint)
         end
     end
 

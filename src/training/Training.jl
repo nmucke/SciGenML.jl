@@ -16,6 +16,7 @@ import SciGenML.DEFAULT_DEVICE as DEFAULT_DEVICE
 import SciGenML.Models as Models
 import SciGenML.Utils as Utils
 import SciGenML.Sampling as Sampling
+import SciGenML.Config as Config
 
 import Lux
 import Random
@@ -25,6 +26,8 @@ import Zygote
 import Distributions
 import Statistics
 import DataLoaders
+import BSON
+import Configurations
 
 const DEFAULT_LR = DEFAULT_TYPE(1.0f-3)
 const DEFAULT_LAMBDA = DEFAULT_TYPE(1.0f-3)
@@ -80,5 +83,8 @@ include("train_conditional_flow_matching.jl")
 include("train_diffusion_model.jl")
 
 export train
+
+##### Checkpoint #####
+export Checkpoint, save_train_state, load_train_state
 
 end
