@@ -22,7 +22,7 @@ function load_super_res_kolmogorov_data(
     high_res_data = []
     low_res_data = []
     for i in 1:num_trajectories
-        data = JLD2.load("data/kolmogorov_super_res/sim_$(i).jld2")
+        data = JLD2.load("data/super_res_kolmogorov/sim_$(i).jld2")
         high_res = data["high_res"][
             :,
             :,
@@ -32,7 +32,7 @@ function load_super_res_kolmogorov_data(
         high_res = high_res .|> DEFAULT_TYPE
         push!(high_res_data, high_res)
 
-        low_res = data["low_res"][
+        low_res = data["upscaled"][
             :,
             :,
             :,

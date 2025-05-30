@@ -16,6 +16,41 @@ device = Lux.gpu_device();
 cpu_dev = Lux.CPUDevice();
 rng = Lux.Random.default_rng();
 
+# import ImageTransformations as IT
+# import JLD2
+# import Plots 
+
+# reduction_factor = 4
+
+# function create_super_res_kolmogorov_data(reduction_factor::Int)
+#     for i in 1:50
+#         high_res_data = JLD2.load("data/kolmogorov_128/sim_$i.jld2")["u"]
+#         high_res_data = high_res_data[2:end-1, 2:end-1, :, 1:3200]
+
+#         low_res_data = zeros(128 ÷ reduction_factor, 128 ÷ reduction_factor, 2, 3200)
+#         upscaled_data = zeros(128, 128, 2, 3200)
+#         for time in 1:3200
+#             for channel in 1:2
+#                 img_small = IT.imresize(high_res_data[:, :, channel, time], ratio=1/reduction_factor)
+#                 img_medium = IT.imresize(img_ssmall, size(img_small).*reduction_factor)
+#                 low_res_data[:, :, channel, time] = img_small
+#                 upscaled_data[:, :, channel, time] = img_medium
+#             end
+#         end
+
+#         JLD2.save(
+#             "data/super_res_kolmogorov/sim_$i.jld2", 
+#             Dict(
+#                 "low_res" => low_res_data, 
+#                 "upscaled" => upscaled_data,
+#                 "high_res" => high_res_data
+#             )
+#         )
+#     end
+# end
+
+# create_super_res_kolmogorov_data(reduction_factor)
+
 ##### Load config #####
 config = Configurations.from_toml(
     Config.Hyperparameters,
@@ -33,7 +68,7 @@ SI_model = Utils.move_to_device(SI_model, device);
 SI_model = Training.train(SI_model, data, config; verbose = true);
 
 ##### Sample using model #####
-test_ids = [1000, 3000, 5000, 7000];
+test_ids = [100, 200, 300, 400];
 num_steps = 100;
 num_physical_steps = 50;
 

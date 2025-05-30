@@ -18,3 +18,7 @@
 *.mp4
 
 /data/
+
+/python_libs/
+/python_libs/.venv/
+
