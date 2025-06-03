@@ -8,6 +8,7 @@ import SciGenML.TimeIntegrators as TimeIntegrators
 import SciGenML.Plotting as Plotting
 import SciGenML.Data as Data
 using LuxCUDA
+import Lux
 import Configurations
 import Random
 
