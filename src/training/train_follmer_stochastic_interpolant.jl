@@ -74,8 +74,7 @@ function train(
     config,
     rng = Random.default_rng();
     verbose = true,
-    checkpoint = nothing,
-    train_state = nothing
+    checkpoint = nothing
 )
     println("Training Follmer Stochastic Interpolant")
 
@@ -90,14 +89,8 @@ function train(
     )
 
     # Initialize train state
-    if train_state === nothing
-        train_state = Lux.Training.TrainState(
-            model.velocity,
-            model.ps.velocity,
-            model.st.velocity,
-            opt
-        )
-    end
+    train_state =
+        Lux.Training.TrainState(model.velocity, model.ps.velocity, model.st.velocity, opt)
 
     iter = Utils.get_iter(config.training.num_epochs, verbose)
 
@@ -140,8 +133,8 @@ function train(
         end
     end
 
-    model.ps = (; velocity = train_state.parameters)
-    model.st = (; velocity = train_state.states)
+    model.ps = (; velocity = train_state.parameters .|> CPU_DEVICE)
+    model.st = (; velocity = train_state.states .|> CPU_DEVICE)
 
     return model
 end

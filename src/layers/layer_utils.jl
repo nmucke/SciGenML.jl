@@ -8,18 +8,8 @@ function get_padding(padding::String, padding_size::Int)
         return a -> NNlib.pad_zeros(a, (padding_size, padding_size, 0, 0))
 
     elseif padding == "periodic"
-        return a -> pad(a, :periodic, (padding_size, padding_size, 0, 0))
-
-    elseif padding == "symmetric"
-        return a -> pad(a, :symmetric, (padding_size, padding_size, 0, 0))
-
-    elseif padding == "replicate"
-        return a -> pad(a, :replicate, (padding_size, padding_size, 0, 0))
-
-    elseif padding == "mirror"
-        return a -> pad(a, :mirror, (padding_size, padding_size, 0, 0))
-
+        return a -> NNlib.pad_circular(a, padding_size; dims = (1, 2))
     else
-        return a -> a
+        throw(ArgumentError("Invalid padding type: $padding. Must be one of: constant, periodic"))
     end
 end

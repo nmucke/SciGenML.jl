@@ -44,7 +44,30 @@ mutable struct FollmerStochasticInterpolant <: Models.ConditionalGenerativeModel
     end
 
     ### Constructor from config
-    function FollmerStochasticInterpolant(config::Config.Hyperparameters,)
+    function FollmerStochasticInterpolant(config::Config.Hy
+        mutable struct FollmerStochasticInterpolant <: Models.ConditionalGenerativeModel
+            interpolant_coefs::Any
+            velocity::Any
+            ps::Any
+            st::Any
+            trait::Any
+            device::Any
+        
+            # Constructor with velocity
+            function FollmerStochasticInterpolant(velocity)
+                velocity_ps, velocity_st = Lux.setup(Lux.Random.default_rng(), velocity)
+        
+                ps = (; velocity = velocity_ps)
+                st = (; velocity = velocity_st)
+                return new(
+                    quadratic_interpolant_coefs(Models.Stochastic()),
+                    velocity,
+                    ps,
+                    st,
+                    Models.Stochastic(),
+                    DEFAULT_DEVICE
+                )
+            endperparameters,)
 
         # Define velocity model
         velocity_model = Architectures.get_architecture(config.architecture);
@@ -94,7 +117,6 @@ function drift_term(model::FollmerStochasticInterpolant, diffusion_fn = nothing)
     function drift_wrapper(x, ps, st; model = model)
         velocity, _velocity_st = model.velocity(x, ps.velocity, st.velocity)
         st = (; velocity = _velocity_st)
-
         return velocity, st
     end
 

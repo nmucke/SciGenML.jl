@@ -26,7 +26,7 @@ import Zygote
 import Distributions
 import Statistics
 import DataLoaders
-import BSON
+import JLD2
 import Configurations
 
 const DEFAULT_LR = DEFAULT_TYPE(1.0f-3)
@@ -35,6 +35,7 @@ const DEFAULT_OPTIMIZER = Optimisers.AdamW(; eta = DEFAULT_LR, lambda = DEFAULT_
 const DEFAULT_LOSS_FN = Lux.MSELoss()
 const DEFAULT_NUM_EPOCHS = 100
 const DEFAULT_BATCH_SIZE = 16
+const CPU_DEVICE = Lux.CPUDevice()
 
 const MSE_LOSS_FN = Lux.MSELoss()
 

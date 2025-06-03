@@ -416,7 +416,7 @@ function UNet(
         x = combine_field_conditioning(x, f)
         x = input_conv(x)
 
-        # downsampling
+        # # downsampling
         h = (x,)
         for (conv_next_block, down_sampling_layer) in
             zip(down_conv_next_blocks, down_sampling_layers)

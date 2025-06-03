@@ -255,7 +255,7 @@ function sample(
         rng = rng,
         device = model.device
     )
-    model.st = (; velocity = st.velocity)
+    # model.st = (; velocity = st.velocity)
 
     x_samples, st = TimeIntegrators.ode_integrator(
         ode_stepper,
@@ -270,7 +270,7 @@ function sample(
         device = model.device
     )
 
-    st = (; velocity = st.velocity)
+    # st = (; velocity = st.velocity)
 
     return x_samples, st
 end

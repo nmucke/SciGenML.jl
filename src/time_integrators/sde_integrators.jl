@@ -217,6 +217,7 @@ function heun_step(
     st;
     rng = Lux.Random.default_rng()
 )
+
     ### Euler Maruyama step ###
     # Get drift
     em_drift, st = drift_term_fn((x, conditioning..., t), ps, st)

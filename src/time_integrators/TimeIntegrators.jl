@@ -15,6 +15,7 @@ import SciGenML.DEFAULT_DEVICE as DEFAULT_DEVICE
 import SciGenML.Utils as Utils
 
 import Random
+import Lux
 
 ##### ODE Integrators #####
 include("ode_integrators.jl")

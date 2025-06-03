@@ -15,7 +15,6 @@ import SciGenML.DEFAULT_DEVICE as DEFAULT_DEVICE
 using Lux
 using Random
 using NNlib
-using ArrayPadding
 
 ### Layer Utils ###
 include("layer_utils.jl")

@@ -274,8 +274,11 @@ end
     Save a train state to a checkpoint.
 """
 function save_train_state(train_state::Any, checkpoint::Checkpoint)
-    train_state_path = joinpath(checkpoint.checkpoint_path, "train_state.bson")
-    BSON.bson(train_state_path, Dict("train_state" => train_state))
+    train_state_path = joinpath(checkpoint.checkpoint_path, "train_state.jld2")
+    JLD2.save(
+        train_state_path,
+        Dict("ps" => train_state.parameters, "st" => train_state.states)
+    )
 end
 
 """
@@ -286,6 +289,6 @@ end
     Load a train state from a checkpoint.
 """
 function load_train_state(checkpoint::Checkpoint)
-    train_state_path = joinpath(checkpoint.checkpoint_path, "train_state.bson")
-    return BSON.load(train_state_path)["train_state"]
+    train_state_path = joinpath(checkpoint.checkpoint_path, "train_state.jld2")
+    return JLD2.load(train_state_path)
 end
