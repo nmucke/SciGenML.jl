@@ -39,14 +39,7 @@ SI_model.st = (; velocity = train_state["st"]);
 SI_model = Utils.move_to_device(SI_model, device);
 
 ##### Train model #####
-SI_model = Training.train(
-    SI_model,
-    data,
-    config;
-    verbose = true,
-    checkpoint = checkpoint
-    # train_state = train_state
-);
+SI_model = Training.train(SI_model, data, config; verbose = true, checkpoint = checkpoint);
 
 ##### Sample using model #####
 num_gen_samples = 4;
