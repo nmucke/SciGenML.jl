@@ -243,18 +243,23 @@ struct Checkpoint
     config::Any
 
     # Constructor
-    function Checkpoint(checkpoint_path::String, config::Any = nothing)
+    function Checkpoint(checkpoint_path::String, config::Any = nothing; create_new = true)
 
         # Check if path exists, if not create it
-        if !isdir(checkpoint_path) && !isnothing(config)
-            println("Checkpoint path does not exist, creating it...")
-            mkpath(checkpoint_path)
+        if !isnothing(config) && create_new
+            println("Creating new checkpoint...")
+
+            if !isdir(checkpoint_path)
+                println("Checkpoint path does not exist, creating it...")
+                mkpath(checkpoint_path)
+            end
 
             # Save config
             config_path = joinpath(checkpoint_path, "config.toml")
             Configurations.to_toml(config_path, config)
+
         else
-            println("Checkpoint path exists, loading it...")
+            println("Loading checkpoint...")
 
             # Load config
             config_path = joinpath(checkpoint_path, "config.toml")
@@ -267,18 +272,16 @@ end
 
 """
     save_train_state(
-        train_state::Any, 
+        ps,
+        st,
         checkpoint::Checkpoint
     )
 
     Save a train state to a checkpoint.
 """
-function save_train_state(train_state::Any, checkpoint::Checkpoint)
-    train_state_path = joinpath(checkpoint.checkpoint_path, "train_state.jld2")
-    JLD2.save(
-        train_state_path,
-        Dict("ps" => train_state.parameters, "st" => train_state.states)
-    )
+function save_train_state(ps, st, checkpoint::Checkpoint)
+    train_state_path = joinpath(checkpoint.checkpoint_path, "train_state.bson")
+    BSON.bson(train_state_path, Dict("ps" => ps, "st" => st))
 end
 
 """
@@ -289,6 +292,6 @@ end
     Load a train state from a checkpoint.
 """
 function load_train_state(checkpoint::Checkpoint)
-    train_state_path = joinpath(checkpoint.checkpoint_path, "train_state.jld2")
-    return JLD2.load(train_state_path)
+    train_state_path = joinpath(checkpoint.checkpoint_path, "train_state.bson")
+    return BSON.load(train_state_path)
 end

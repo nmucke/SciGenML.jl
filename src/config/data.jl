@@ -24,3 +24,14 @@ Configurations.@option "super_res_kolmogorov" struct SuperResKolmogorovDataHyper
     start_step::Int
     normal_base_distribution::Bool
 end
+
+"""
+    KNMIDataHyperparameters
+
+    Hyperparameters for the KNMI data.
+"""
+Configurations.@option "knmi" struct KNMIDataHyperparameters
+    num_steps::Int
+    num_trajectories::Int
+    num_skip_steps::Int
+end

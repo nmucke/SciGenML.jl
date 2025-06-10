@@ -129,12 +129,16 @@ function train(
 
         # Save checkpoint
         if checkpoint !== nothing
-            save_train_state(train_state, checkpoint)
+            save_train_state(
+                train_state.parameters |> CPU_DEVICE,
+                train_state.states |> CPU_DEVICE,
+                checkpoint
+            )
         end
     end
 
-    model.ps = (; velocity = train_state.parameters .|> CPU_DEVICE)
-    model.st = (; velocity = train_state.states .|> CPU_DEVICE)
+    model.ps = (; velocity = train_state.parameters)
+    model.st = (; velocity = train_state.states)
 
     return model
 end
