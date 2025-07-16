@@ -7,8 +7,6 @@
     Loads the KNMI data for the given number of steps.
 """
 function load_knmi_data(num_steps, trajectories, num_skip_steps)
-    println("Loading KNMI data...")
-
     base = []
     target = []
     field_conditioning = []
@@ -17,9 +15,6 @@ function load_knmi_data(num_steps, trajectories, num_skip_steps)
 
         tas = data["tas"]
         ym = data["ym"]
-
-        tas = (tas .- Statistics.mean(tas)) ./ Statistics.std(tas)
-        ym = (ym .- Statistics.mean(ym)) ./ Statistics.std(ym)
 
         tas = tas[1:num_skip_steps:(num_steps * num_skip_steps), :, :]
         ym = ym[1:num_skip_steps:(num_steps * num_skip_steps), :, :]
@@ -45,13 +40,23 @@ function load_knmi_data(num_steps, trajectories, num_skip_steps)
     )
 end
 
+"""
+    load_knmi_data(
+        config::Config.KNMIDataHyperparameters;
+        kwargs...
+    )
+
+Loads the KNMI data for the given configuration.
+"""
 function load_knmi_data(config::Config.KNMIDataHyperparameters; kwargs...)
+    println("Loading KNMI training data...")
     train_data = load_knmi_data(
         config.train_num_steps,
         config.train_trajectories,
         config.num_skip_steps
     )
 
+    println("Loading KNMI test data...")
     test_data = load_knmi_data(
         config.test_num_steps,
         config.test_trajectories,

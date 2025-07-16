@@ -23,6 +23,8 @@ export DEFAULT_TYPE, ZERO_TOL
 
 include("config/Config.jl")
 
+include("preprocessing/Preprocessing.jl")
+
 include("layers/Layers.jl")
 
 include("architectures/Architectures.jl")
