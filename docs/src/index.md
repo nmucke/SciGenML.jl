@@ -13,6 +13,7 @@ Documentation for [SciGenML](https://github.com/nmucke/SciGenML.jl).
 Modules = [
     SciGenML, 
     SciGenML.Models, 
+    SciGenML.Preprocessing,
     SciGenML.Architectures, 
     SciGenML.Layers, 
     SciGenML.TimeIntegrators, 

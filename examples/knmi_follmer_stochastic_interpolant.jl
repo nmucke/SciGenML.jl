@@ -40,8 +40,8 @@ data_preprocessor = Preprocessing.DataPreprocessor(
     Preprocessing.StandardScaler(train_data.field_conditioning)
 );
 
-train_data = data_preprocessor.inverse_transform(train_data);
-test_data = data_preprocessor.inverse_transform(test_data);
+train_data = data_preprocessor.transform(train_data);
+test_data = data_preprocessor.transform(test_data);
 
 ##### Checkpoint #####
 checkpoint = Training.Checkpoint(CHECKPOINT_PATH, config; create_new = !LOAD_CHECKPOINT);
