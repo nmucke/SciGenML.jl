@@ -175,26 +175,61 @@ function eval_drift_term(x, x0, t)
     return out
 end;
 
-function euler_maruyama(x0, t_steps, num_samples, diffusion_term, drift_term)
+function prior_score_term(x, x0, drift, t)
+    A = 1.0f0 ./ (t .* gamma(t) .* (beta_diff(t) .* gamma(t) .- beta(t) .* gamma_diff(t)))
+    c = beta_diff(t) .* x .+ (beta(t) .* alpha_diff(t) - alpha(t) .* beta_diff(t)) .* x0
+    return A .* (beta(t) .* drift - c), zeros(Float32, length(x))
+end;
+
+function euler_maruyama(
+    x0,
+    t_steps,
+    num_samples,
+    diffusion_term,
+    drift_term;
+    score_fn = prior_score_term
+)
     x = zeros(Float32, 2, length(t_steps), num_samples)
+    dt = t_steps[2] - t_steps[1]
 
     if length(size(x0)) == 1
         x0 = repeat(x0, 1, num_samples)
     end
-
     x[:, 1, :] = x0
-    for i in 2:length(t_steps)
-        dt = t_steps[i] - t_steps[i - 1]
+
+    z = Random.randn(Float32, 2, num_samples)
+    x_new = x[:, 1, :] .+ drift_term(x[:, 1, :], x0, t_steps[1]) .* dt
+    x_new = x_new .+ sqrt(dt) .* gamma(t_steps[1]) .* z
+    x[:, 2, :] = x_new
+
+    for i in 3:length(t_steps)
         z = Random.randn(Float32, 2, num_samples)
         diffusion_term_val = diffusion_term(t_steps[i - 1])
-        x[:, i, :] = x[:, i - 1, :] .+ drift_term(x[:, i - 1, :], x0, t_steps[i - 1]) .* dt
-        x[:, i, :] = x[:, i, :] .+ sqrt(dt) .* diffusion_term_val .* z
+
+        drift = drift_term(x_new, x0, t_steps[i - 1])
+        prior_score, likelihood_score = score_fn(x_new, x0, drift, t_steps[i - 1])
+
+        drift =
+            drift .+
+            0.5f0 .* (diffusion_term_val .^ 2 .- gamma(t_steps[i - 1]) .^ 2) .*
+            (prior_score .+ likelihood_score)  #0.5f0 .* gamma(t_steps[i - 1]) .^ 2 .* likelihood_score
+
+        x_new = x_new .+ drift .* dt
+        x_new = x_new .+ sqrt(dt) .* diffusion_term_val .* z
+        x[:, i, :] = x_new
     end
     return x
 end
 
-t_steps = 0.0f0:0.01f0:1.0f0;
-SI_prior_samples = euler_maruyama(base_sample, t_steps, num_samples, gamma, eval_drift_term);
+t_steps = 0.0f0:0.005f0:1.0f0;
+SI_prior_samples = euler_maruyama(
+    base_sample,
+    t_steps,
+    num_samples,
+    t -> 2.0f0 .* gamma(t),
+    eval_drift_term,
+    score_fn = prior_score_term
+);
 
 SI_prior_pdf, _, _ = get_kde_pdf(SI_prior_samples[:, end, :]);
 SI_prior_pdf_diagonal = [SI_prior_pdf[i, i] for i in 1:size(SI_prior_pdf, 1)];
@@ -218,12 +253,8 @@ function post_likelihood_function(x, obs, cov)
     return Dist.logpdf(post_noise_dist, obs - obs_operator(x))
 end;
 
-function posterior_drift_term(x, x0, y, t)
-    prior_drift = eval_drift_term(x, x0, t)
-
-    if beta(t) < 1.0f-8
-        return prior_drift
-    end
+function posterior_score_term(x, x0, drift, t; y = obs)
+    prior_score = prior_score_term(x, x0, drift, t)
 
     likelihood_score = zeros(Float32, length(x))
     obs_interpolant = alpha(t) .* obs_operator(x0) .+ beta(t) .* y #.+ gamma(t) .* sqrt.(t) .* randn(Float32, size(x))
@@ -241,45 +272,90 @@ function posterior_drift_term(x, x0, y, t)
 
     likelihood_score = Zygote.gradient(x -> sum(log_likelihood_score_fn(x)), x)[1]
 
-    score_magnitude = sum(likelihood_score .^ 2, dims = 1)
+    # score_magnitude = sum(likelihood_score .^ 2, dims = 1)
 
-    xi = t .* gamma(t) .* (beta_diff(t) .* gamma(t) .- beta(t) .* gamma_diff(t))
-    likelihood_score = likelihood_score .* xi ./ beta(t)
+    # xi = t .* gamma(t) .* (beta_diff(t) .* gamma(t) .- beta(t) .* gamma_diff(t))
+    # likelihood_score = likelihood_score .* xi ./ beta(t)
 
-    theta = 1.0f0
-    diffusion_adaption = 1.0f0 .+ theta .* t .* (1.0f0 .- t) .* score_magnitude
-    diffusion_term = gamma(t) .^ 2 .* sqrt.(diffusion_adaption)
+    # theta = 1.0f0
+    # diffusion_adaption = 1.0f0 .+ theta .* t .* (1.0f0 .- t) .* score_magnitude
+    # diffusion_term = 0.5f0 .* gamma(t)
 
-    return prior_drift .+ likelihood_score, diffusion_term
+    return prior_score, likelihood_score#, diffusion_term
 end;
+
+# function posterior_drift_term(x, x0, y, t)
+#     prior_drift = eval_drift_term(x, x0, t)
+
+#     if beta(t) < 1.0f-8
+#         return prior_drift
+#     end
+
+#     likelihood_score = zeros(Float32, length(x))
+#     obs_interpolant = alpha(t) .* obs_operator(x0) .+ beta(t) .* y #.+ gamma(t) .* sqrt.(t) .* randn(Float32, size(x))
+
+#     # interpolant_cov = beta(t).^2 .* obs_cov# .+ Statistics.cov(obs_operator(x); dims=2)# .+ gamma(t).^2 .* Id
+
+#     interpolant_cov = Statistics.cov(obs_operator(x), obs_operator(x); dims = 2)
+#     interpolant_cov =
+#         interpolant_cov .- 2.0f0 .* beta(t) .* Statistics.cov(obs_operator(x), y; dims = 2)
+#     interpolant_cov = interpolant_cov .+ beta(t) .^ 2 .* obs_cov
+#     # interpolant_cov = interpolant_cov .+ gamma(t).^2 .* t .* Id
+
+#     log_likelihood_score_fn =
+#         x -> post_likelihood_function(x, obs_interpolant, interpolant_cov)
+
+#     likelihood_score = Zygote.gradient(x -> sum(log_likelihood_score_fn(x)), x)[1]
+
+#     # score_magnitude = sum(likelihood_score .^ 2, dims = 1)
+
+#     xi = t .* gamma(t) .* (beta_diff(t) .* gamma(t) .- beta(t) .* gamma_diff(t))
+#     likelihood_score = likelihood_score .* xi ./ beta(t)
+
+#     # theta = 1.0f0
+#     # diffusion_adaption = 1.0f0 .+ theta .* t .* (1.0f0 .- t) .* score_magnitude
+#     diffusion_term = 0.5f0 .* gamma(t)
+
+#     return prior_drift .+ likelihood_score, diffusion_term
+# end;
 
 t_steps = 0.0f0:0.005f0:1.0f0;
 
 obs_matrix = repeat(obs, 1, num_samples);
 
-function euler_maruyama_with_varying_diffusion(x0, t_steps, num_samples, drift_term)
-    x = zeros(Float32, 2, length(t_steps), num_samples)
+# function euler_maruyama_with_varying_diffusion(x0, t_steps, num_samples, drift_term)
+#     x = zeros(Float32, 2, length(t_steps), num_samples)
 
-    if length(size(x0)) == 1
-        x0 = repeat(x0, 1, num_samples)
-    end
+#     if length(size(x0)) == 1
+#         x0 = repeat(x0, 1, num_samples)
+#     end
 
-    x[:, 1, :] = x0
-    for i in 2:length(t_steps)
-        dt = t_steps[i] - t_steps[i - 1]
-        z = Random.randn(Float32, 2, num_samples)
-        drift_term_val, diffusion_term_val = drift_term(x[:, i - 1, :], x0, t_steps[i - 1])
-        x[:, i, :] = x[:, i - 1, :] .+ drift_term_val .* dt
-        x[:, i, :] = x[:, i, :] .+ sqrt(dt) .* diffusion_term_val .* z
-    end
-    return x
-end
+#     x[:, 1, :] = x0
+#     for i in 2:length(t_steps)
+#         dt = t_steps[i] - t_steps[i - 1]
+#         z = Random.randn(Float32, 2, num_samples)
+#         drift_term_val, diffusion_term_val = drift_term(x[:, i - 1, :], x0, t_steps[i - 1])
+#         x[:, i, :] = x[:, i - 1, :] .+ drift_term_val .* dt
+#         x[:, i, :] = x[:, i, :] .+ sqrt(dt) .* diffusion_term_val .* z
+#     end
+#     return x
+# end
 
-x = euler_maruyama_with_varying_diffusion(
+# x = euler_maruyama_with_varying_diffusion(
+#     base_sample,
+#     t_steps,
+#     num_samples,
+#     (x, x0, t) -> posterior_drift_term(x, x0, obs_matrix, t)
+# );
+
+x = euler_maruyama(
     base_sample,
     t_steps,
     num_samples,
-    (x, x0, t) -> posterior_drift_term(x, x0, obs_matrix, t)
+    t -> 2.0f0 .* gamma(t),
+    eval_drift_term,
+    score_fn = (x, x0, drift, t) ->
+        posterior_score_term(x, x0, drift, t; y = obs_matrix)
 );
 
 SI_posterior_pdf, _, _ = get_kde_pdf(x[:, end, :]);

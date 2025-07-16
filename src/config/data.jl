@@ -5,9 +5,9 @@
     Hyperparameters for the kolmogorov data.
 """
 Configurations.@option "kolmogorov" struct KolmogorovDataHyperparameters
-    num_trajectories::Int
+    train_trajectories::Vector{Int}
     num_skip_steps::Int
-    num_steps::Int
+    train_num_steps::Int
     start_step::Int
     normal_base_distribution::Bool
 end
@@ -18,9 +18,9 @@ end
     Hyperparameters for the super res kolmogorov data.
 """
 Configurations.@option "super_res_kolmogorov" struct SuperResKolmogorovDataHyperparameters
-    num_trajectories::Int
+    trajectories::Vector{Int}
     num_skip_steps::Int
-    num_steps::Int
+    train_num_steps::Int
     start_step::Int
     normal_base_distribution::Bool
 end
@@ -31,7 +31,9 @@ end
     Hyperparameters for the KNMI data.
 """
 Configurations.@option "knmi" struct KNMIDataHyperparameters
-    num_steps::Int
-    num_trajectories::Int
+    train_num_steps::Int
+    train_trajectories::Vector{Int}
     num_skip_steps::Int
+    test_num_steps::Int
+    test_trajectories::Vector{Int}
 end

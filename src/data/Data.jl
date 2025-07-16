@@ -15,7 +15,6 @@ import SciGenML.Config as Config
 
 import Distributions
 import JLD2
-import Zarr
 import NPZ
 import Statistics
 

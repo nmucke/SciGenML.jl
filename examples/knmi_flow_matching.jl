@@ -10,9 +10,6 @@ import SciGenML.Data as Data
 using LuxCUDA
 import Configurations
 import Random
-import Zarr
-
-data = Zarr.zopen("data/knmi/ec-esdiff-tas-ym-time-2c_r1i1p5f1.zarr")
 
 device = Lux.gpu_device();
 cpu_dev = Lux.CPUDevice();

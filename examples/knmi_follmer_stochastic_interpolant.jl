@@ -12,8 +12,11 @@ using LuxCUDA
 import Configurations
 import Random
 import Plots
+import CUDA
 
-LOAD_CHECKPOINT = true;
+CUDA.math_mode!(CUDA.FAST_MATH)
+
+LOAD_CHECKPOINT = false;
 CHECKPOINT_PATH = "checkpoints/knmi_stochastic_interpolant";
 
 device = Lux.gpu_device();
@@ -27,7 +30,7 @@ config = Configurations.from_toml(
 );
 
 ##### Load data #####
-data = Data.load_data(config);
+data, test_data = Data.load_data(config);
 
 ##### Checkpoint #####
 checkpoint = Training.Checkpoint(CHECKPOINT_PATH, config; create_new = !LOAD_CHECKPOINT);
@@ -52,20 +55,30 @@ SI_model = Training.train(SI_model, data, config; verbose = true, checkpoint = c
 
 ##### Sample using model #####
 num_gen_samples = 4;
-num_steps = 20;
-start_time = 50000;
-num_physical_steps = 10000;
+num_steps = 25;
+start_time = 1;
+num_physical_steps = 7500;
+skip_steps = 1;
 
-test_data = data.target[:, :, :, start_time:(start_time + num_physical_steps)];
+test_data = data.target[
+    :,
+    :,
+    :,
+    start_time:skip_steps:(skip_steps * (start_time + num_physical_steps))
+];
 
 init_condition = test_data[:, :, :, 1:1] |> device;
 init_condition = cat((init_condition for i in 1:num_gen_samples)..., dims = 4);
 
-field_conditioning =
-    data.field_conditioning[:, :, :, start_time:(start_time + num_physical_steps)];
+field_conditioning = data.field_conditioning[
+    :,
+    :,
+    :,
+    start_time:skip_steps:(skip_steps * (start_time + num_physical_steps))
+];
 field_conditioning = cat((field_conditioning for i in 1:num_gen_samples)..., dims = 5);
 
-pred_trajectories = zeros(Float32, 64, 128, 1, num_physical_steps, num_gen_samples);
+pred_trajectories = zeros(DEFAULT_TYPE, 64, 128, 1, num_physical_steps, num_gen_samples);
 pred_trajectories[:, :, :, 1, :] = init_condition |> cpu_dev;
 iter = Utils.get_iter(num_physical_steps-1, true);
 for i in iter

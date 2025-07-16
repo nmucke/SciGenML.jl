@@ -9,7 +9,6 @@ This module contains functions for plotting.
 module Plotting
 
 import Plots
-# import Makie
 using CairoMakie
 
 """

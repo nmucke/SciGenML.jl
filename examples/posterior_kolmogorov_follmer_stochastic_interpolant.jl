@@ -40,8 +40,8 @@ function log_likelihood_fn(x, y; mu = 0.0f0, sigma = SIGMA)
     return -0.5f0 ./ (sigma .^ 2) .* out
 end
 
-x = Random.randn(Float32, 128, 128, 2, 1) |> device;
-y = Random.randn(Float32, 26, 26, 1, 1) |> device;
+x = Random.randn(DEFAULT_TYPE, 128, 128, 2, 1) |> device;
+y = Random.randn(DEFAULT_TYPE, 26, 26, 1, 1) |> device;
 observation_operator(x)
 log_likelihood_fn(x, y)
 
@@ -77,11 +77,11 @@ test_data = data.target[:, :, :, 1:num_physical_steps];
 init_condition = test_data[:, :, :, 1:1] |> device;
 init_condition = cat((init_condition for i in 1:num_gen_samples)..., dims = 4);
 
-pred_trajectories = zeros(Float32, 128, 128, 2, num_physical_steps, num_gen_samples);
+pred_trajectories = zeros(DEFAULT_TYPE, 128, 128, 2, num_physical_steps, num_gen_samples);
 pred_trajectories[:, :, :, 1, :] = init_condition |> cpu_dev;
 iter = Utils.get_iter(num_physical_steps-1, true);
 for i in iter
-    noise = Random.randn(Float32, 26, 26, 1, 1) .* SIGMA |> device;
+    noise = Random.randn(DEFAULT_TYPE, 26, 26, 1, 1) .* SIGMA |> device;
     obs = test_data[:, :, :, i:i] |> device
     obs = observation_operator(obs) .+ noise;
 

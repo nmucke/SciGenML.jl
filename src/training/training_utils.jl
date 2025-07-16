@@ -14,7 +14,7 @@ function compute_velocity_loss(model, ps, st, (x, y))
 end
 
 """
-    get_optimizer(type::String, lr::Float32, lambda::Float32)
+    get_optimizer(type::String, lr, lambda)
 
     Get an optimizer from a string.
 """

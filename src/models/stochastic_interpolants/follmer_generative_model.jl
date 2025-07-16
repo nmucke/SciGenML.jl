@@ -59,7 +59,7 @@ mutable struct FollmerStochasticInterpolant <: Models.ConditionalGenerativeModel
         st::Any,
         trait::Any
     )
-        return new(interpolant_coefs, velocity, ps, st, trait, device)
+        return new(interpolant_coefs, velocity, ps, st, trait, DEFAULT_DEVICE)
     end
 end
 

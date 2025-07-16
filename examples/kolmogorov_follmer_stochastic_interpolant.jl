@@ -59,7 +59,7 @@ test_data = data.target[:, :, :, 1:num_physical_steps];
 init_condition = test_data[:, :, :, 1:1] |> device;
 init_condition = cat((init_condition for i in 1:num_gen_samples)..., dims = 4);
 
-pred_trajectories = zeros(Float32, 128, 128, 2, num_physical_steps, num_gen_samples);
+pred_trajectories = zeros(DEFAULT_TYPE, 128, 128, 2, num_physical_steps, num_gen_samples);
 pred_trajectories[:, :, :, 1, :] = init_condition |> cpu_dev;
 iter = Utils.get_iter(num_physical_steps-1, true);
 for i in iter

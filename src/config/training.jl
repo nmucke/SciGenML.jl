@@ -8,6 +8,7 @@ Configurations.@option struct TrainingHyperparameters
     batch_size::Int
     num_epochs::Int
     match_base_and_target::Bool
+    patience::Int
 end
 
 """

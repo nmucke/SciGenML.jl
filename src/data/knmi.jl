@@ -6,13 +6,13 @@
 
     Loads the KNMI data for the given number of steps.
 """
-function load_knmi_data(num_steps, num_trajectories, num_skip_steps)
+function load_knmi_data(num_steps, trajectories, num_skip_steps)
     println("Loading KNMI data...")
 
     base = []
     target = []
     field_conditioning = []
-    for i in 1:num_trajectories
+    for i in trajectories
         data = NPZ.npzread("data/knmi/sim_$i.npz")
 
         tas = data["tas"]
@@ -46,5 +46,17 @@ function load_knmi_data(num_steps, num_trajectories, num_skip_steps)
 end
 
 function load_knmi_data(config::Config.KNMIDataHyperparameters; kwargs...)
-    return load_knmi_data(config.num_steps, config.num_trajectories, config.num_skip_steps)
+    train_data = load_knmi_data(
+        config.train_num_steps,
+        config.train_trajectories,
+        config.num_skip_steps
+    )
+
+    test_data = load_knmi_data(
+        config.test_num_steps,
+        config.test_trajectories,
+        config.num_skip_steps
+    )
+
+    return train_data, test_data
 end

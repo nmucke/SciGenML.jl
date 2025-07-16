@@ -88,8 +88,8 @@ end
         in_features::Tuple,
         out_features::Int, 
         hidden_features::Vector{Int};
-        activation_function::Function = DEFAULT_ACTIVATION_FUNCTION,
-        dropout::Float32 = DEFAULT_DROPOUT
+        activation_function = DEFAULT_ACTIVATION_FUNCTION,
+        dropout = DEFAULT_DROPOUT
     )
 
     in_features: A tuple of the number of input features
@@ -105,8 +105,8 @@ function DenseNeuralNetwork(
     in_features::Tuple,
     out_features::Int,
     hidden_features::Vector{Int};
-    activation_function::Function = DEFAULT_ACTIVATION_FUNCTION,
-    dropout::Float32 = DEFAULT_DROPOUT
+    activation_function = DEFAULT_ACTIVATION_FUNCTION,
+    dropout = DEFAULT_DROPOUT
 )
     model = Lux.@compact(network = get_model(;
         in_features = sum(in_features),
