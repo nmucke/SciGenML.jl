@@ -9,7 +9,6 @@ This module contains functions for plotting.
 module Plotting
 
 import Plots
-# import Makie
 using CairoMakie
 
 """
@@ -17,7 +16,7 @@ using CairoMakie
 
 Animate a list of fields.
 """
-function animate_field(field_list, filename, plot_titles)
+function animate_field(field_list, filename, plot_titles; framerate = 10)
     field_list_obs = map(field_list) do field
         Makie.Observable(field[:, :, 1])
     end
@@ -40,7 +39,7 @@ function animate_field(field_list, filename, plot_titles)
         Makie.heatmap!(ax, field_obs; colormap = Makie.Reverse(:Spectral_11))
     end
     ntime = size(field_list[1], 3)
-    stream = Makie.VideoStream(fig; framerate = 1)
+    stream = Makie.VideoStream(fig; framerate = framerate)
     for i in 1:ntime
         for (field_obs, field) in zip(field_list_obs, field_list)
             field_obs[] = field[:, :, i]

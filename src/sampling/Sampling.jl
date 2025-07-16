@@ -35,6 +35,7 @@ end
 
 ##### Stochastic Interpolant Sampling #####
 include("sample_stochastic_interpolant.jl")
+include("posterior_sample_stochastic_interpolant.jl")
 
 ##### Flow Matching Sampling #####
 include("sample_flow_matching.jl")
@@ -43,5 +44,6 @@ include("sample_flow_matching.jl")
 include("sample_diffusion_model.jl")
 
 export sample
+export posterior_sample
 
 end

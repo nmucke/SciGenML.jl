@@ -1,3 +1,40 @@
+function val_step(
+    ::Models.Stochastic,
+    model::Models.FollmerStochasticInterpolant,
+    base_samples,
+    target_samples,
+    field_conditioning,
+    val_state,
+    rng
+)
+    num_samples = size(base_samples)[end]
+
+    # Generate random times
+    t_samples = Random.rand!(rng, similar(base_samples, (1, num_samples)))
+
+    # Sample noise
+    z_samples = Random.randn!(rng, similar(base_samples, size(base_samples)))
+    _t_samples = Utils.reshape_scalar(t_samples, ndims(base_samples))
+    z_samples = sqrt.(_t_samples) .* z_samples
+
+    # Compute interpolated samples
+    interpolated_samples, interpolated_samples_diff = get_interpolated_samples(
+        base_samples,
+        target_samples,
+        z_samples,
+        t_samples,
+        model.interpolant_coefs
+    )
+
+    val_loss, st_, _ = compute_velocity_loss(
+        model.velocity,
+        val_state.ps,
+        val_state.st,
+        ((interpolated_samples, field_conditioning, t_samples), interpolated_samples_diff)
+    )
+
+    return val_loss, st_
+end
 
 """
     _train_step(
@@ -21,8 +58,6 @@ function _train_step(
     train_state,
     rng
 )
-    ### Compute interpolated samples
-
     num_samples = size(base_samples)[end]
 
     # Generate random times
@@ -78,6 +113,9 @@ function train(
 )
     println("Training Follmer Stochastic Interpolant")
 
+    # Get training parameters
+    patience_counter = 0
+
     # Set model to train mode
     model.st = (; velocity = Lux.trainmode(model.st.velocity))
 
@@ -94,14 +132,18 @@ function train(
 
     iter = Utils.get_iter(config.training.num_epochs, verbose)
 
-    train_data, val_data = split_data(data, 0.99, rng)
+    train_data, val_data = split_data(data, 0.90, rng)
+    val_dataloader = get_dataloader(
+        val_data,
+        config.training.batch_size,
+        config.training.match_base_and_target
+    )
 
     best_val_loss = Inf
 
     # Training loop
     for i in iter
         train_velocity_loss = 0.0
-        val_velocity_loss = 0.0
 
         # Prepare dataloader
         train_dataloader = get_dataloader(
@@ -122,19 +164,49 @@ function train(
 
         train_velocity_loss = train_velocity_loss / length(train_dataloader)
 
+        # Validation step
+        val_state = (;
+            ps = Lux.testmode(train_state.parameters),
+            st = Lux.testmode(train_state.states)
+        )
+        val_velocity_loss = 0.0
+        for batch in val_dataloader
+            batch = batch .|> model.device
+
+            _batch_val_velocity_loss, _ =
+                val_step(Models.Stochastic(), model, batch..., val_state, rng)
+            val_velocity_loss += _batch_val_velocity_loss
+        end
+        val_velocity_loss = val_velocity_loss / length(val_dataloader)
+
         if verbose && (i % 10 == 0)
-            println("Epoch $i: Velocity loss = $train_velocity_loss")
+            println("Epoch $i: Train loss = $train_velocity_loss, Val loss = $val_velocity_loss")
             println(" ")
         end
 
-        # Save checkpoint
-        if checkpoint !== nothing
-            save_train_state(train_state, checkpoint)
+        if val_velocity_loss < best_val_loss
+            best_val_loss = val_velocity_loss
+            best_val_state = val_state
+            patience_counter = 0
+
+            # Save checkpoint
+            if checkpoint !== nothing
+                save_train_state(
+                    best_val_state.ps |> CPU_DEVICE,
+                    best_val_state.st |> CPU_DEVICE,
+                    checkpoint
+                )
+            end
+        else
+            patience_counter += 1
+            if patience_counter > config.training.patience
+                break
+            end
         end
     end
 
-    model.ps = (; velocity = train_state.parameters .|> CPU_DEVICE)
-    model.st = (; velocity = train_state.states .|> CPU_DEVICE)
+    model.ps = (; velocity = train_state.parameters)
+    model.st = (; velocity = train_state.states)
 
     return model
 end

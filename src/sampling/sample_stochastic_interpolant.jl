@@ -238,12 +238,15 @@ function sample(
 
     if isnothing(diffusion_fn)
         diffusion_fn = t -> model.interpolant_coefs.gamma(t)
+        drift_term_fn = Models.drift_term(model)
+    else
+        drift_term_fn = Models.drift_term(model, diffusion_fn)
     end
 
     # Solve SDE
     x_samples, st = TimeIntegrators.sde_integrator(
         stepper,
-        Models.drift_term(model, diffusion_fn),
+        drift_term_fn,
         diffusion_fn,
         x_samples,
         conditioning,

@@ -30,6 +30,7 @@ Configurations.@option struct Hyperparameters
     data::Union{
         KolmogorovDataHyperparameters,
         SuperResKolmogorovDataHyperparameters,
+        KNMIDataHyperparameters,
         PlaceholderDataHyperparameters
     }
 end

@@ -9,6 +9,7 @@ This module contains generative models.
 module Models
 
 import Lux
+import Zygote
 
 import SciGenML.DEFAULT_TYPE as DEFAULT_TYPE
 import SciGenML.ZERO_TOL as ZERO_TOL

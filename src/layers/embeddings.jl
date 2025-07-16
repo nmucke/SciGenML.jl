@@ -30,7 +30,7 @@ function sinusoidal_embedding(
     d = (upper - lower) / (n - 1)
     freqs = exp.(lower:d:upper) |> dev
 
-    angular_speeds = reshape(2.0f0 * Float32(pi) .* freqs, (length(freqs), 1))
+    angular_speeds = reshape(2.0f0 * DEFAULT_TYPE(pi) .* freqs, (length(freqs), 1))
 
     return cat(sin.(angular_speeds .* x), cos.(angular_speeds .* x); dims = 1)
 end

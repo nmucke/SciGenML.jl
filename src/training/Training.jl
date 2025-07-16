@@ -28,6 +28,7 @@ import Statistics
 import DataLoaders
 import JLD2
 import Configurations
+import BSON
 
 const DEFAULT_LR = DEFAULT_TYPE(1.0f-3)
 const DEFAULT_LAMBDA = DEFAULT_TYPE(1.0f-3)
