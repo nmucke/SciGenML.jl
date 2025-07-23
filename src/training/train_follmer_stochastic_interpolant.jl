@@ -140,6 +140,7 @@ function train(
     )
 
     best_val_loss = Inf
+    best_val_state = (; ps = train_state.parameters, st = train_state.states)
 
     # Training loop
     for i in iter
@@ -189,6 +190,9 @@ function train(
             best_val_state = val_state
             patience_counter = 0
 
+            println("Best validation loss: $best_val_loss at epoch $i")
+            println(" ")
+
             # Save checkpoint
             if checkpoint !== nothing
                 save_train_state(
@@ -205,8 +209,8 @@ function train(
         end
     end
 
-    model.ps = (; velocity = train_state.parameters)
-    model.st = (; velocity = train_state.states)
+    model.ps = (; velocity = best_val_state.ps)
+    model.st = (; velocity = best_val_state.st)
 
     return model
 end

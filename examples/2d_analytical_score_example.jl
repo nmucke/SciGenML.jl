@@ -178,7 +178,7 @@ end;
 function prior_score_term(x, x0, drift, t)
     A = 1.0f0 ./ (t .* gamma(t) .* (beta_diff(t) .* gamma(t) .- beta(t) .* gamma_diff(t)))
     c = beta_diff(t) .* x .+ (beta(t) .* alpha_diff(t) - alpha(t) .* beta_diff(t)) .* x0
-    return A .* (beta(t) .* drift - c), zeros(Float32, length(x))
+    return A .* (beta(t) .* drift - c), zeros(Float32, size(x))
 end;
 
 function euler_maruyama(
@@ -248,48 +248,13 @@ Plots.plot(
 
 ##### Stochastic Interpolant Posterior#####
 
-function post_likelihood_function(x, obs, cov)
-    post_noise_dist = Dist.MvNormal(zeros(Float32, 2), cov);
-    return Dist.logpdf(post_noise_dist, obs - obs_operator(x))
-end;
+# function post_likelihood_function(x, obs, cov)
+#     post_noise_dist = Dist.MvNormal(zeros(Float32, 2), cov);
+#     return Dist.logpdf(post_noise_dist, obs - obs_operator(x))
+# end;
 
-function posterior_score_term(x, x0, drift, t; y = obs)
-    prior_score = prior_score_term(x, x0, drift, t)
-
-    likelihood_score = zeros(Float32, length(x))
-    obs_interpolant = alpha(t) .* obs_operator(x0) .+ beta(t) .* y #.+ gamma(t) .* sqrt.(t) .* randn(Float32, size(x))
-
-    # interpolant_cov = beta(t).^2 .* obs_cov# .+ Statistics.cov(obs_operator(x); dims=2)# .+ gamma(t).^2 .* Id
-
-    interpolant_cov = Statistics.cov(obs_operator(x), obs_operator(x); dims = 2)
-    interpolant_cov =
-        interpolant_cov .- 2.0f0 .* beta(t) .* Statistics.cov(obs_operator(x), y; dims = 2)
-    interpolant_cov = interpolant_cov .+ beta(t) .^ 2 .* obs_cov
-    # interpolant_cov = interpolant_cov .+ gamma(t).^2 .* t .* Id
-
-    log_likelihood_score_fn =
-        x -> post_likelihood_function(x, obs_interpolant, interpolant_cov)
-
-    likelihood_score = Zygote.gradient(x -> sum(log_likelihood_score_fn(x)), x)[1]
-
-    # score_magnitude = sum(likelihood_score .^ 2, dims = 1)
-
-    # xi = t .* gamma(t) .* (beta_diff(t) .* gamma(t) .- beta(t) .* gamma_diff(t))
-    # likelihood_score = likelihood_score .* xi ./ beta(t)
-
-    # theta = 1.0f0
-    # diffusion_adaption = 1.0f0 .+ theta .* t .* (1.0f0 .- t) .* score_magnitude
-    # diffusion_term = 0.5f0 .* gamma(t)
-
-    return prior_score, likelihood_score#, diffusion_term
-end;
-
-# function posterior_drift_term(x, x0, y, t)
-#     prior_drift = eval_drift_term(x, x0, t)
-
-#     if beta(t) < 1.0f-8
-#         return prior_drift
-#     end
+# function posterior_score_term(x, x0, drift, t; y = obs)
+#     prior_score = prior_score_term(x, x0, drift, t)
 
 #     likelihood_score = zeros(Float32, length(x))
 #     obs_interpolant = alpha(t) .* obs_operator(x0) .+ beta(t) .* y #.+ gamma(t) .* sqrt.(t) .* randn(Float32, size(x))
@@ -309,15 +274,50 @@ end;
 
 #     # score_magnitude = sum(likelihood_score .^ 2, dims = 1)
 
-#     xi = t .* gamma(t) .* (beta_diff(t) .* gamma(t) .- beta(t) .* gamma_diff(t))
-#     likelihood_score = likelihood_score .* xi ./ beta(t)
+#     # xi = t .* gamma(t) .* (beta_diff(t) .* gamma(t) .- beta(t) .* gamma_diff(t))
+#     # likelihood_score = likelihood_score .* xi ./ beta(t)
 
 #     # theta = 1.0f0
 #     # diffusion_adaption = 1.0f0 .+ theta .* t .* (1.0f0 .- t) .* score_magnitude
-#     diffusion_term = 0.5f0 .* gamma(t)
+#     # diffusion_term = 0.5f0 .* gamma(t)
 
-#     return prior_drift .+ likelihood_score, diffusion_term
+#     return prior_score, likelihood_score#, diffusion_term
 # end;
+
+function post_likelihood_function(x, obs, cov_inv)
+    # jac_Hxt = Zygote.jacobian(x -> obs_operator(x), x)[1]
+
+    jac_Hxt = Id
+    diff = obs - obs_operator(x)
+
+    out = cov_inv * diff
+
+    out = transpose(jac_Hxt) * out
+    return out
+end;
+
+function posterior_score_term(x, x0, drift, t; y = obs)
+    prior_score, _ = prior_score_term(x, x0, drift, t)
+
+    if beta(t) < 1.0f-8
+        return prior_drift
+    end
+
+    likelihood_score = zeros(Float32, length(x))
+    obs_interpolant = alpha(t) .* obs_operator(x0) .+ beta(t) .* y #.+ gamma(t) .* sqrt.(t) .* randn(Float32, size(x))
+
+    interpolant_cov = beta(t) .^ 2 .* obs_cov + 0.25f0 .* gamma(t) .^ 2 .* t .* Id
+    interpolant_cov_inv = inv(interpolant_cov)
+
+    # Evaluate likelihood score for each sample
+    likelihood_score = zeros(Float32, size(x))
+    for i in 1:size(x, 2)
+        likelihood_score[:, i] =
+            post_likelihood_function(x[:, i], obs_interpolant[:, i], interpolant_cov_inv)
+    end
+
+    return prior_score, likelihood_score#, diffusion_term
+end;
 
 t_steps = 0.0f0:0.005f0:1.0f0;
 

@@ -17,7 +17,7 @@ import CUDA
 
 CUDA.math_mode!(CUDA.FAST_MATH)
 
-LOAD_CHECKPOINT = false;
+LOAD_CHECKPOINT = true;
 CHECKPOINT_PATH = "checkpoints/knmi_stochastic_interpolant";
 
 device = Lux.gpu_device();
@@ -41,7 +41,10 @@ data_preprocessor = Preprocessing.DataPreprocessor(
 );
 
 train_data = data_preprocessor.transform(train_data);
-test_data = data_preprocessor.transform(test_data);
+test_data = (;
+    base = data_preprocessor.base.transform(test_data.base),
+    field_conditioning = data_preprocessor.field_conditioning.transform(test_data.field_conditioning)
+);
 
 ##### Checkpoint #####
 checkpoint = Training.Checkpoint(CHECKPOINT_PATH, config; create_new = !LOAD_CHECKPOINT);
@@ -67,38 +70,40 @@ SI_model =
 
 ##### Sample using model #####
 num_gen_samples = 4;
-num_steps = 25;
+num_steps = 50;
 start_time = 1;
-num_physical_steps = 7500;
-skip_steps = 1;
+num_physical_steps = 5000;
 
-test_samples = test_data.target[:, :, :, start_time:(start_time + num_physical_steps)];
+test_samples = test_data.base[:, :, :, start_time:(start_time + num_physical_steps), 1];
 
 init_condition = test_samples[:, :, :, 1:1] |> device;
 init_condition = cat((init_condition for i in 1:num_gen_samples)..., dims = 4);
 
 field_conditioning =
-    test_samples.field_conditioning[:, :, :, start_time:(start_time + num_physical_steps)];
+    test_data.field_conditioning[:, :, :, start_time:(start_time + num_physical_steps), 1];
 field_conditioning = cat((field_conditioning for i in 1:num_gen_samples)..., dims = 5);
 
 pred_trajectories = zeros(DEFAULT_TYPE, 64, 128, 1, num_physical_steps, num_gen_samples);
-pred_trajectories[:, :, :, 1, :] = init_condition |> cpu_dev;
+pred_trajectories[:, :, :, 1, :] =
+    data_preprocessor.base.inverse_transform(init_condition |> cpu_dev);
 iter = Utils.get_iter(num_physical_steps-1, true);
 for i in iter
     init_condition, _st = Sampling.sample(
         SI_model,
-        cat(init_condition, field_conditioning[:, :, 2:2, i, :], dims = 3),
+        cat(init_condition |> device, field_conditioning[:, :, 2:2, i, :], dims = 3),
         num_steps;
         prior_samples = init_condition,
         verbose = false,
         stepper = TimeIntegrators.heun_step
     )
-    # SI_model.st = _st
-    pred_trajectories[:, :, :, i + 1, :] =
-        data_preprocessor.base.inverse_transform(init_condition) |> cpu_dev
+
+    sol = init_condition |> cpu_dev
+    sol = data_preprocessor.base.inverse_transform(sol)
+    pred_trajectories[:, :, :, i + 1, :] = sol
 end
 
-trajectory_list = [permutedims(test_data[:, :, 1, 1:num_physical_steps], (2, 1, 3))];
+test_trajectories = data_preprocessor.base.inverse_transform(test_samples);
+trajectory_list = [permutedims(test_trajectories[:, :, 1, 1:num_physical_steps], (2, 1, 3))];
 for i in 1:num_gen_samples
     push!(trajectory_list, permutedims(pred_trajectories[:, :, 1, :, i], (2, 1, 3)));
 end
@@ -113,7 +118,7 @@ Plotting.animate_field(
 
 import Statistics
 pred_temperature = Statistics.mean(pred_trajectories, dims = (1, 2))[1, 1, 1, :, :];
-true_temperature = Statistics.mean(test_data, dims = (1, 2))[1, 1, 1, :];
+true_temperature = Statistics.mean(test_trajectories, dims = (1, 2))[1, 1, 1, :];
 
 Plots.plot(pred_temperature[:, 1], label = "SI Prediction")
 Plots.plot!(true_temperature, label = "True")

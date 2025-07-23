@@ -42,9 +42,9 @@ x0_pdf, _, _ = get_kde_pdf(x0_samples);
 x0_pdf_diagonal = [x0_pdf[i, i] for i in 1:size(x0_pdf, 1)]
 
 # SI prior distribution
-x1_mean = x -> [x[1], x[2]];
+x1_mean = x -> [x[1] .^ 2, 1.0f0 * x[2]];
 
-x1_cov = x -> [1.0f0 0.0f0; 0.0f0 1.0f0];
+x1_cov = x -> [0.5f0 0.25f0; 0.25f0 0.5f0];
 x1_cov_inv = x -> inv(x1_cov(x));
 
 x1_dist = x0 -> Dist.MvNormal(x1_mean(x0), x1_cov(x0));
@@ -67,7 +67,8 @@ true_obs = [3.0f0, 3.0f0];
 obs_operator = x -> x
 obs = obs_operator(true_obs);
 
-obs_cov = [1.0f0 0.0f0; 0.0f0 1.0f0];
+# obs_cov = [0.5f0 0.25f0; 0.25f0 0.5f0];
+obs_cov = Id;
 
 noise_dist = Dist.MvNormal(zeros(Float32, 2), obs_cov);
 likelihood_function = (x, obs) -> Dist.pdf(noise_dist, obs - obs_operator(x))
@@ -213,9 +214,21 @@ Plots.plot(
 
 ##### Stochastic Interpolant Posterior#####
 
-function post_likelihood_function(x, obs, cov)
-    post_noise_dist = Dist.MvNormal(zeros(Float32, 2), cov);
-    return Dist.logpdf(post_noise_dist, obs - obs_operator(x))
+# function post_likelihood_function(x, obs, cov)
+#     post_noise_dist = Dist.MvNormal(zeros(Float32, 2), cov);
+#     return Dist.logpdf(post_noise_dist, obs - obs_operator(x))
+# end;
+function post_likelihood_function(x, obs, cov_inv)
+    # jac_Hxt = Zygote.jacobian(x -> obs_operator(x), x)[1]
+
+    # jac_Hxt = Zygote.jacobian(x -> obs_operator(x), x)[1]
+    jac_Hxt = Id
+    diff = obs - obs_operator(x)
+
+    out = cov_inv * diff
+
+    out = transpose(jac_Hxt) * out
+    return out
 end;
 
 function posterior_drift_term(x, x0, y, t)
@@ -230,62 +243,85 @@ function posterior_drift_term(x, x0, y, t)
 
     # interpolant_cov = beta(t).^2 .* obs_cov# .+ Statistics.cov(obs_operator(x); dims=2)# .+ gamma(t).^2 .* Id
 
-    interpolant_cov = Statistics.cov(obs_operator(x), obs_operator(x); dims = 2)
-    interpolant_cov =
-        interpolant_cov .- 2.0f0 .* beta(t) .* Statistics.cov(obs_operator(x), y; dims = 2)
-    interpolant_cov = interpolant_cov .+ beta(t) .^ 2 .* obs_cov
+    # interpolant_cov = Statistics.cov(obs_operator(x), obs_operator(x); dims = 2)
+    # interpolant_cov =
+    #     interpolant_cov .- 2.0f0 .* beta(t) .* Statistics.cov(obs_operator(x), y; dims = 2)
+    interpolant_cov = beta(t) .^ 2 .* obs_cov + gamma(t) .^ 2 .* t .* Id
+    interpolant_cov_inv = inv(interpolant_cov)
     # interpolant_cov = interpolant_cov .+ gamma(t).^2 .* t .* Id
 
-    log_likelihood_score_fn =
-        x -> post_likelihood_function(x, obs_interpolant, interpolant_cov)
+    # log_likelihood_score_fn =
+    #     x -> post_likelihood_function(x, obs_interpolant, interpolant_cov)
 
-    likelihood_score = Zygote.gradient(x -> sum(log_likelihood_score_fn(x)), x)[1]
+    # likelihood_score = Zygote.gradient(x -> sum(log_likelihood_score_fn(x)), x)[1]
 
-    score_magnitude = sum(likelihood_score .^ 2, dims = 1)
+    # grad_Hxt = Zygote.gradient(x -> sum(obs_operator(x)), x)[1]
+
+    # Evaluate likelihood score for each sample
+    likelihood_score = zeros(Float32, size(x))
+    for i in 1:size(x, 2)
+        likelihood_score[:, i] =
+            post_likelihood_function(x[:, i], obs_interpolant[:, i], interpolant_cov_inv)
+    end
+
+    # likelihood_score = post_likelihood_function(x, obs_interpolant, interpolant_cov_inv)
+
+    # score_magnitude = sum(likelihood_score .^ 2, dims = 1)
 
     xi = t .* gamma(t) .* (beta_diff(t) .* gamma(t) .- beta(t) .* gamma_diff(t))
     likelihood_score = likelihood_score .* xi ./ beta(t)
 
-    theta = 1.0f0
-    diffusion_adaption = 1.0f0 .+ theta .* t .* (1.0f0 .- t) .* score_magnitude
-    diffusion_term = gamma(t) .^ 2 .* sqrt.(diffusion_adaption)
+    # theta = 1.0f0
+    # diffusion_adaption = 1.0f0 .+ theta .* t .* (1.0f0 .- t) .* score_magnitude
+    # diffusion_term = gamma(t) .^ 2 .* sqrt.(diffusion_adaption)
 
-    return prior_drift .+ likelihood_score, diffusion_term
+    return prior_drift .+ likelihood_score#, diffusion_term
 end;
 
-t_steps = 0.0f0:0.005f0:1.0f0;
+t_steps = 0.0f0:0.001f0:1.0f0;
 
 obs_matrix = repeat(obs, 1, num_samples);
 
-function euler_maruyama_with_varying_diffusion(x0, t_steps, num_samples, drift_term)
-    x = zeros(Float32, 2, length(t_steps), num_samples)
+# function euler_maruyama_with_varying_diffusion(x0, t_steps, num_samples, drift_term)
+#     x = zeros(Float32, 2, length(t_steps), num_samples)
 
-    if length(size(x0)) == 1
-        x0 = repeat(x0, 1, num_samples)
-    end
+#     if length(size(x0)) == 1
+#         x0 = repeat(x0, 1, num_samples)
+#     end
 
-    x[:, 1, :] = x0
-    for i in 2:length(t_steps)
-        dt = t_steps[i] - t_steps[i - 1]
-        z = Random.randn(Float32, 2, num_samples)
-        drift_term_val, diffusion_term_val = drift_term(x[:, i - 1, :], x0, t_steps[i - 1])
-        x[:, i, :] = x[:, i - 1, :] .+ drift_term_val .* dt
-        x[:, i, :] = x[:, i, :] .+ sqrt(dt) .* diffusion_term_val .* z
-    end
-    return x
-end
+#     x[:, 1, :] = x0
+#     for i in 2:length(t_steps)
+#         dt = t_steps[i] - t_steps[i - 1]
+#         z = Random.randn(Float32, 2, num_samples)
+#         drift_term_val, diffusion_term_val = drift_term(x[:, i - 1, :], x0, t_steps[i - 1])
+#         x[:, i, :] = x[:, i - 1, :] .+ drift_term_val .* dt
+#         x[:, i, :] = x[:, i, :] .+ sqrt(dt) .* diffusion_term_val .* z
+#     end
+#     return x
+# end
 
-x = euler_maruyama_with_varying_diffusion(
+# x = euler_maruyama_with_varying_diffusion(
+#     base_sample,
+#     t_steps,
+#     num_samples,
+#     (x, x0, t) -> posterior_drift_term(x, x0, obs_matrix, t)
+# );
+x = euler_maruyama(
     base_sample,
     t_steps,
     num_samples,
+    t -> 2.25f0 .* gamma(t),
     (x, x0, t) -> posterior_drift_term(x, x0, obs_matrix, t)
 );
 
 SI_posterior_pdf, _, _ = get_kde_pdf(x[:, end, :]);
 SI_posterior_pdf_diagonal = [SI_posterior_pdf[i, i] for i in 1:size(SI_posterior_pdf, 1)];
 
-exact_posteior_dist = Dist.MvNormal(0.5f0 .* (x1_mean(base_sample) .+ obs), 0.5f0 .* Id)
+exact_post_cov = inv(x1_cov_inv(base_sample) .+ Id)
+exact_posteior_dist = Dist.MvNormal(
+    exact_post_cov * (x1_cov_inv(base_sample)*obs_operator(x1_mean(base_sample)) .+ obs),
+    exact_post_cov
+)
 exact_posterior_samples = rand(exact_posteior_dist, num_samples);
 exact_posterior_pdf, _, _ = get_kde_pdf(exact_posterior_samples);
 exact_posterior_pdf_diagonal =
@@ -295,19 +331,21 @@ Plots.plot(
     plot_pdf(x[:, end, :], "SI posterior"),
     plot_pdf(x1_samples, "Prior"),
     plot_pdf(likelihood_samples, "Likelihood samples"),
+    plot_pdf(mh_samples, "MH posterior"),
     plot_pdf(exact_posterior_samples, "Exact posterior"),
     Plots.plot(
         [
             SI_posterior_pdf_diagonal,
             x1_pdf_diagonal,
             likelihood_pdf_diagonal,
+            mh_pdf_diagonal,
             exact_posterior_pdf_diagonal
         ],
         linewidth = 5,
-        label = ["SI posterior" "Prior" "Likelihood samples" "Exact posterior"]
+        label = ["SI posterior" "Prior" "Likelihood samples" "MH posterior" "Exact posterior"]
     ),
     layout = (3, 2),
     size = (1600, 1600),
     legend = :outertopright,
-    title = ["SI posterior" "Prior" "Likelihood samples" "Exact posterior"]
+    title = ["SI posterior" "Prior" "Likelihood samples" "MH posterior" "   Exact posterior"]
 )
